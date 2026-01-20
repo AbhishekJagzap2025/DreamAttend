@@ -81,9 +81,10 @@ class AppConstants {
   static const String assignableEmployeesEndpoint =
       '/api/task/assignable_employees';
   // Archive User Endpoint
-  static const String archiveUserEndpoint = '/api/archive-user';
   static const String getProfileEndpoint = '/api/get/profile';
 
   // Payslip worked days and inputs endpoint
   static const String getPayslipWorkedDaysEndpoint = '/api/payslip/details';
+  static const String archiveUserEndpoint = '/api/archive-user';
+  static const String selfArchiveEndpoint = '/api/self-archive';
 }

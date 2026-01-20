@@ -76,4 +76,30 @@ class UserProfileService {
       throw Exception('Error fetching employee profile: $e');
     }
   }
+  // Add this new method to UserProfileService class
+
+  Future<Map<String, dynamic>> archiveAccount() async {
+    await _ensureAuthenticated();
+
+    final response = await _apiService.authenticatedPost(
+      AppConstants.selfArchiveEndpoint,
+      {}, // empty body - API doesn't require payload
+      sessionId: _sessionId!,
+    );
+
+    print('Archive API response status: ${response.statusCode}');
+    print('Archive API response body: ${response.body}');
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to archive account: ${response.body}');
+    }
+
+    final data = jsonDecode(response.body);
+
+    if (data['status'] != 'SUCCESS') {
+      throw Exception(data['message'] ?? 'Archive failed');
+    }
+
+    return data;
+  }
 }
