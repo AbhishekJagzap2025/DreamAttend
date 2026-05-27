@@ -1,4 +1,5 @@
 // import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 // import '/services/configuration_service.dart';
 // import '/models/salary_structure.dart';
 // import 'utils/app_layout.dart';
@@ -46,8 +47,8 @@
 //     return Scaffold(
 //       appBar: AppBar(
 //         title: const Text('Salary Structures'),
-//         backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-//         foregroundColor: Colors.white,
+//         backgroundColor: AppColor.primary,
+//         foregroundColor: AppColor.white,
 //       ),
 //       body: SingleChildScrollView(
 //         padding: const EdgeInsets.all(24.0),
@@ -62,7 +63,7 @@
 //                 style: TextStyle(
 //                   fontSize: 18,
 //                   fontWeight: FontWeight.bold,
-//                   color: Color.fromARGB(255, 7, 56, 80),
+//                   color: AppColor.primary,
 //                 ),
 //               ),
 //               const SizedBox(height: 12),

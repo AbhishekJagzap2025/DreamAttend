@@ -39,18 +39,20 @@ class ApiService {
       debugPrint(
           'Sending authentication request: email=$email, device_id=$deviceId');
 
-      final response = await http.post(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.authEndpoint}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'device_id': deviceId,
-        }),
-      ).timeout(_requestTimeout);
+      final response = await http
+          .post(
+            Uri.parse('${AppConstants.baseUrl}${AppConstants.authEndpoint}'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'email': email,
+              'password': password,
+              'device_id': deviceId,
+            }),
+          )
+          .timeout(_requestTimeout);
 
       final responseData = _decodeJsonMap(
         response,
@@ -266,15 +268,17 @@ class ApiService {
           .replace(queryParameters: queryParams);
       debugPrint('POST request to: $uri');
       debugPrint('POST body: $body');
-      final response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Cookie': sessionId,
-        },
-        body: jsonEncode(body),
-      ).timeout(_requestTimeout);
+      final response = await http
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Cookie': sessionId,
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(_requestTimeout);
       return await _handleAuthenticatedResponse(response, endpoint: endpoint);
     } catch (e) {
       if (e is SessionExpiredException) {
@@ -352,7 +356,8 @@ class ApiService {
     final body = response.body.trimLeft();
     final lowerBody = body.toLowerCase();
 
-    if (lowerBody.startsWith('<!doctype html') || lowerBody.startsWith('<html')) {
+    if (lowerBody.startsWith('<!doctype html') ||
+        lowerBody.startsWith('<html')) {
       throw Exception(
         'Server returned HTML instead of JSON. Check session expiry or backend routing.',
       );

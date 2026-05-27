@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 
 import '/models/employee.dart';
 import '/services/employee_service.dart';
@@ -125,8 +126,8 @@ class _EmployeePageState extends State<EmployeePage> {
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [
-              Color(0xFFE8F1F5),
-              Color(0xFFD6E5EC),
+              AppColor.employeeTile,
+              AppColor.employeeBorder,
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -134,13 +135,13 @@ class _EmployeePageState extends State<EmployeePage> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: AppColor.black.withOpacity(0.08),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
           ],
           border: Border.all(
-            color: const Color(0xFFB8CED8),
+            color: AppColor.employeeMuted,
           ),
         ),
         child: Column(
@@ -149,13 +150,13 @@ class _EmployeePageState extends State<EmployeePage> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.75),
+                color: AppColor.white.withOpacity(0.75),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.person_outline_rounded,
                 size: 54,
-                color: Color(0xFF073850),
+                color: AppColor.primary,
               ),
             ),
             const SizedBox(height: 18),
@@ -164,7 +165,7 @@ class _EmployeePageState extends State<EmployeePage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF073850),
+                color: AppColor.primary,
               ),
             ),
             const SizedBox(height: 6),
@@ -173,7 +174,7 @@ class _EmployeePageState extends State<EmployeePage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: Color(0xFF5D7682),
+                color: AppColor.employeeText,
               ),
             ),
           ],
@@ -189,11 +190,11 @@ class _EmployeePageState extends State<EmployeePage> {
 
     return CircleAvatar(
       radius: 24,
-      backgroundColor: const Color(0xFF073850),
+      backgroundColor: AppColor.primary,
       child: Text(
         initial,
         style: const TextStyle(
-          color: Colors.white,
+          color: AppColor.white,
           fontWeight: FontWeight.bold,
           fontSize: 18,
         ),
@@ -218,7 +219,7 @@ class _EmployeePageState extends State<EmployeePage> {
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
+                foregroundColor: AppColor.red,
               ),
               child: const Text('Delete'),
             ),
@@ -249,7 +250,7 @@ class _EmployeePageState extends State<EmployeePage> {
           child: Scaffold(
             appBar: AppBar(
               title: Text(employee.name),
-              backgroundColor: const Color.fromARGB(255, 7, 56, 80),
+              backgroundColor: AppColor.primary,
               leading: IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
@@ -258,7 +259,7 @@ class _EmployeePageState extends State<EmployeePage> {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(Icons.delete, color: AppColor.red),
                   onPressed: () {
                     Navigator.of(dialogContext).pop();
                     _deleteEmployee(employee);
@@ -384,7 +385,7 @@ class _EmployeePageState extends State<EmployeePage> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Employee Directory'),
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
+        backgroundColor: AppColor.primary,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -401,12 +402,12 @@ class _EmployeePageState extends State<EmployeePage> {
               hintText: 'Search by Employee name or email',
               onChanged: _filterEmployees,
               padding: const EdgeInsets.only(bottom: 16),
-              borderSide: const BorderSide(color: Colors.transparent),
+              borderSide: const BorderSide(color: AppColor.transparent),
               enabledBorderSide: const BorderSide(
-                color: Colors.transparent,
+                color: AppColor.transparent,
               ),
               focusedBorderSide: const BorderSide(
-                color: Color(0xFF073850),
+                color: AppColor.primary,
                 width: 2,
               ),
             ),
@@ -423,25 +424,25 @@ class _EmployeePageState extends State<EmployeePage> {
                               width: double.infinity,
                               margin: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppColor.white,
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.3),
+                                    color: AppColor.grey.withOpacity(0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
                               child: Material(
-                                color: Colors.transparent,
+                                color: AppColor.transparent,
                                 child: Row(
                                   children: [
                                     Expanded(
                                       child: InkWell(
                                         borderRadius: BorderRadius.circular(16),
-                                        onTap: () =>
-                                            _showEmployeeDetailsDialog(employee),
+                                        onTap: () => _showEmployeeDetailsDialog(
+                                            employee),
                                         child: Padding(
                                           padding: const EdgeInsets.all(16),
                                           child: Row(
@@ -495,7 +496,7 @@ class _EmployeePageState extends State<EmployeePage> {
                                                               'N/A',
                                                             ),
                                                           )
-                                                      .key,
+                                                          .key,
                                                     ),
                                                     const SizedBox(height: 12),
                                                     _buildEmployeeSummaryRow(
@@ -528,7 +529,7 @@ class _EmployeePageState extends State<EmployeePage> {
                                       child: IconButton(
                                         icon: const Icon(
                                           Icons.delete,
-                                          color: Colors.red,
+                                          color: AppColor.red,
                                         ),
                                         onPressed: () =>
                                             _deleteEmployee(employee),

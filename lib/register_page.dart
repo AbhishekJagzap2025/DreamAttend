@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:http/http.dart' as http;
 import '/models/register_model.dart';
 import '/services/register_service.dart';
@@ -87,16 +88,16 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register Page'),
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
+        backgroundColor: AppColor.primary,
         titleTextStyle: const TextStyle(
-          color: Colors.white,
+          color: AppColor.white,
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
       body: SingleChildScrollView(
         child: Container(
-          color: const Color.fromARGB(255, 241, 246, 249),
+          color: AppColor.scaffoldBackground,
           padding: const EdgeInsets.only(bottom: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,7 +111,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 30,
-                    color: Color.fromARGB(255, 7, 56, 80),
+                    color: AppColor.primary,
                   ),
                 ),
               ),
@@ -121,7 +122,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
-                    color: Color.fromARGB(255, 7, 56, 80),
+                    color: AppColor.primary,
                   ),
                 ),
               ),
@@ -148,19 +149,19 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 7, 56, 80),
+                      color: AppColor.primary,
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Center(
                       child: _isLoading
                           ? const CircularProgressIndicator(
-                              color: Colors.white,
+                              color: AppColor.white,
                             )
                           : const Text(
                               'Register',
                               style: TextStyle(
                                 fontSize: 20,
-                                color: Colors.white,
+                                color: AppColor.white,
                               ),
                             ),
                     ),
@@ -188,7 +189,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       "Sign in",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 7, 56, 80),
+                        color: AppColor.primary,
                       ),
                     ),
                   ),
@@ -211,7 +212,7 @@ class _RegisterPageState extends State<RegisterPage> {
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 237, 239, 240),
+          color: AppColor.disabledBackground,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Padding(
@@ -223,7 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
               hintText: hint,
               prefixIcon: Icon(
                 icon,
-                color: const Color.fromARGB(255, 7, 56, 80),
+                color: AppColor.primary,
               ),
               border: InputBorder.none,
             ),
@@ -238,7 +239,7 @@ class _RegisterPageState extends State<RegisterPage> {
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 237, 239, 240),
+          color: AppColor.disabledBackground,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Padding(
@@ -250,13 +251,13 @@ class _RegisterPageState extends State<RegisterPage> {
               hintText: 'Password',
               prefixIcon: const Icon(
                 Icons.lock,
-                color: Color.fromARGB(255, 7, 56, 80),
+                color: AppColor.primary,
               ),
               border: InputBorder.none,
               suffixIcon: IconButton(
                 icon: Icon(
                   _isObscure ? Icons.visibility_off : Icons.visibility,
-                  color: const Color.fromARGB(255, 7, 56, 80),
+                  color: AppColor.primary,
                 ),
                 onPressed: () {
                   setState(() {

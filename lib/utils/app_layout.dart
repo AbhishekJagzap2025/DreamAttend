@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:get/get.dart';
 
 enum AppSnackBarType { success, error, warning, info }
@@ -20,7 +21,7 @@ showAppSnackBar({
           Text(
             title ?? config.title,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColor.white,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
@@ -34,7 +35,7 @@ showAppSnackBar({
       messageText: Text(
         message,
         style: const TextStyle(
-          color: Colors.white,
+          color: AppColor.white,
           fontSize: 13,
           fontWeight: FontWeight.w400,
         ),
@@ -95,20 +96,20 @@ showStatusSnackBar(
 
 showCircular() {
   return const Center(
-    child: CircularProgressIndicator(color: Colors.black),
+    child: CircularProgressIndicator(color: AppColor.black),
   );
 }
 
 AppSnackBarType _typeFromColor(Color? color) {
   if (color == null) return AppSnackBarType.info;
   final value = color.value;
-  if (value == Colors.green.value || value == Colors.greenAccent.value) {
+  if (value == AppColor.green.value || value == AppColor.greenAccent.value) {
     return AppSnackBarType.success;
   }
-  if (value == Colors.orange.value || value == Colors.orangeAccent.value) {
+  if (value == AppColor.orange.value || value == AppColor.orangeAccent.value) {
     return AppSnackBarType.warning;
   }
-  if (value == Colors.red.value || value == Colors.redAccent.value) {
+  if (value == AppColor.red.value || value == AppColor.redAccent.value) {
     return AppSnackBarType.error;
   }
   return AppSnackBarType.info;
@@ -120,33 +121,33 @@ _SnackBarConfig _snackBarConfig(AppSnackBarType type) {
       return _SnackBarConfig(
         title: 'Success',
         icon: Icons.done_all_outlined,
-        iconColor: Colors.blueGrey.shade700,
-        backgroundColor: const Color.fromARGB(255, 39, 132, 132),
-        borderColor: Colors.blueGrey.shade400,
+        iconColor: AppColor.blueGrey.shade700,
+        backgroundColor: AppColor.snackSuccessBackground,
+        borderColor: AppColor.blueGrey.shade400,
       );
     case AppSnackBarType.error:
       return _SnackBarConfig(
         title: 'Error',
         icon: Icons.error,
-        iconColor: Colors.grey.shade400,
-        backgroundColor: Colors.red.shade400,
-        borderColor: Colors.red.shade800,
+        iconColor: AppColor.grey.shade400,
+        backgroundColor: AppColor.red.shade400,
+        borderColor: AppColor.red.shade800,
       );
     case AppSnackBarType.warning:
       return _SnackBarConfig(
         title: 'Warning',
         icon: Icons.warning_amber_rounded,
-        iconColor: Colors.orange.shade100,
-        backgroundColor: Colors.orange.shade500,
-        borderColor: Colors.orange.shade800,
+        iconColor: AppColor.orange.shade100,
+        backgroundColor: AppColor.orange.shade500,
+        borderColor: AppColor.orange.shade800,
       );
     case AppSnackBarType.info:
       return _SnackBarConfig(
         title: 'Info',
         icon: Icons.info_outline,
-        iconColor: Colors.lightBlue.shade100,
-        backgroundColor: Colors.blueGrey.shade600,
-        borderColor: Colors.blueGrey.shade900,
+        iconColor: AppColor.lightBlue.shade100,
+        backgroundColor: AppColor.blueGrey.shade600,
+        borderColor: AppColor.blueGrey.shade900,
       );
   }
 }

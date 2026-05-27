@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import '/models/attendance_report.dart';
 import '/services/attendance_services.dart';
 import 'utils/app_layout.dart';
@@ -115,7 +116,7 @@ class _UserReportPageState extends State<UserReportPage> {
                 final isSelected = month == _selectedMonth;
 
                 return Material(
-                  color: Colors.transparent,
+                  color: AppColor.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () {
@@ -124,14 +125,13 @@ class _UserReportPageState extends State<UserReportPage> {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color.fromARGB(255, 7, 56, 80)
-                            : Colors.grey[200],
+                        color:
+                            isSelected ? AppColor.primary : AppColor.grey[200],
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
-                              ? const Color.fromARGB(255, 7, 56, 80)
-                              : Colors.grey[300]!,
+                              ? AppColor.primary
+                              : AppColor.grey[300]!,
                           width: 1,
                         ),
                       ),
@@ -139,7 +139,8 @@ class _UserReportPageState extends State<UserReportPage> {
                         child: Text(
                           _getMonthName(month).substring(0, 3),
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black87,
+                            color:
+                                isSelected ? AppColor.white : AppColor.black87,
                             fontWeight: isSelected
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -190,7 +191,7 @@ class _UserReportPageState extends State<UserReportPage> {
                 final isSelected = year == _selectedYear;
 
                 return Material(
-                  color: Colors.transparent,
+                  color: AppColor.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () {
@@ -199,14 +200,13 @@ class _UserReportPageState extends State<UserReportPage> {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color.fromARGB(255, 7, 56, 80)
-                            : Colors.grey[200],
+                        color:
+                            isSelected ? AppColor.primary : AppColor.grey[200],
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
-                              ? const Color.fromARGB(255, 7, 56, 80)
-                              : Colors.grey[300]!,
+                              ? AppColor.primary
+                              : AppColor.grey[300]!,
                           width: 1,
                         ),
                       ),
@@ -214,7 +214,8 @@ class _UserReportPageState extends State<UserReportPage> {
                         child: Text(
                           year.toString(),
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black87,
+                            color:
+                                isSelected ? AppColor.white : AppColor.black87,
                             fontWeight: isSelected
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -260,7 +261,7 @@ class _UserReportPageState extends State<UserReportPage> {
   }
 
   Future<void> _fetchReportForSelectedDate() async {
-   if (!mounted) return;
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final month = _selectedMonth.toString().padLeft(2, '0');
@@ -288,7 +289,7 @@ class _UserReportPageState extends State<UserReportPage> {
         ),
       );
 
-     if (!mounted) return;
+      if (!mounted) return;
       setState(() {
         _currentReport = userReport;
       });
@@ -297,7 +298,7 @@ class _UserReportPageState extends State<UserReportPage> {
         context: context,
         message:
             "Unable to load report for ${_getMonthName(_selectedMonth)} $_selectedYear: $e",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppColor.redAccent,
         icon: Icons.error_outline,
       );
       if (!mounted) return;
@@ -330,27 +331,26 @@ class _UserReportPageState extends State<UserReportPage> {
         title: Text(
           "${_currentReport?.employeeName ?? widget.currentUserName}'s Performance",
           style: const TextStyle(
-              fontWeight: FontWeight.w600, fontSize: 20, color: Colors.white),
+              fontWeight: FontWeight.w600, fontSize: 20, color: AppColor.white),
         ),
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
+        backgroundColor: AppColor.primary,
         elevation: 4,
         centerTitle: true,
-        shadowColor: Colors.black.withOpacity(0.2),
+        shadowColor: AppColor.black.withOpacity(0.2),
       ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFF1F6F9), Color(0xFFE5EAF0)],
+            colors: [AppColor.scaffoldBackground, AppColor.gradientEnd],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(
-                    color: Color.fromARGB(255, 7, 56, 80)),
+                child: CircularProgressIndicator(color: AppColor.primary),
               )
             : SingleChildScrollView(
                 child: Padding(
@@ -362,7 +362,7 @@ class _UserReportPageState extends State<UserReportPage> {
                         children: [
                           Expanded(
                             child: Material(
-                              color: Colors.transparent,
+                              color: AppColor.transparent,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(12),
                                 onTap: _showMonthPicker,
@@ -372,11 +372,11 @@ class _UserReportPageState extends State<UserReportPage> {
                                     horizontal: 16,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: AppColor.white,
                                     borderRadius: BorderRadius.circular(12),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
+                                        color: AppColor.black.withOpacity(0.1),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -390,7 +390,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                         children: [
                                           const Icon(
                                             Icons.calendar_month,
-                                            color: Colors.blue,
+                                            color: AppColor.blue,
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
@@ -398,14 +398,14 @@ class _UserReportPageState extends State<UserReportPage> {
                                             style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
-                                              color: Colors.black87,
+                                              color: AppColor.black87,
                                             ),
                                           ),
                                         ],
                                       ),
                                       const Icon(
                                         Icons.arrow_drop_down,
-                                        color: Colors.grey,
+                                        color: AppColor.grey,
                                       ),
                                     ],
                                   ),
@@ -416,7 +416,7 @@ class _UserReportPageState extends State<UserReportPage> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: Material(
-                              color: Colors.transparent,
+                              color: AppColor.transparent,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(12),
                                 onTap: _showYearPicker,
@@ -426,11 +426,11 @@ class _UserReportPageState extends State<UserReportPage> {
                                     horizontal: 16,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: AppColor.white,
                                     borderRadius: BorderRadius.circular(12),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
+                                        color: AppColor.black.withOpacity(0.1),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -444,7 +444,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                         children: [
                                           const Icon(
                                             Icons.calendar_today,
-                                            color: Colors.green,
+                                            color: AppColor.green,
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
@@ -452,14 +452,14 @@ class _UserReportPageState extends State<UserReportPage> {
                                             style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
-                                              color: Colors.black87,
+                                              color: AppColor.black87,
                                             ),
                                           ),
                                         ],
                                       ),
                                       const Icon(
                                         Icons.arrow_drop_down,
-                                        color: Colors.grey,
+                                        color: AppColor.grey,
                                       ),
                                     ],
                                   ),
@@ -483,14 +483,14 @@ class _UserReportPageState extends State<UserReportPage> {
                                     const Icon(
                                       Icons.inbox_outlined,
                                       size: 64,
-                                      color: Colors.grey,
+                                      color: AppColor.grey,
                                     ),
                                     const SizedBox(height: 16),
                                     const Text(
                                       'No attendance data available',
                                       style: TextStyle(
                                         fontSize: 18,
-                                        color: Colors.black87,
+                                        color: AppColor.black87,
                                         fontWeight: FontWeight.w600,
                                       ),
                                       textAlign: TextAlign.center,
@@ -500,7 +500,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                       'for ${_getMonthName(_selectedMonth)} $_selectedYear',
                                       style: const TextStyle(
                                         fontSize: 16,
-                                        color: Colors.black54,
+                                        color: AppColor.black54,
                                         fontWeight: FontWeight.w500,
                                       ),
                                       textAlign: TextAlign.center,
@@ -520,19 +520,14 @@ class _UserReportPageState extends State<UserReportPage> {
                                   children: [
                                     CircleAvatar(
                                       radius: 50,
-                                      backgroundColor: const Color.fromARGB(
-                                        255,
-                                        7,
-                                        56,
-                                        80,
-                                      ),
+                                      backgroundColor: AppColor.primary,
                                       child: Text(
                                         (_currentReport?.employeeName ??
                                                 widget.currentUserName)[0]
                                             .toUpperCase(),
                                         style: const TextStyle(
                                           fontSize: 36,
-                                          color: Colors.white,
+                                          color: AppColor.white,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -544,7 +539,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                       style: const TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
+                                        color: AppColor.black87,
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -556,7 +551,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                           _currentReport!.department,
                                           style: const TextStyle(
                                             fontSize: 16,
-                                            color: Colors.black54,
+                                            color: AppColor.black54,
                                           ),
                                           textAlign: TextAlign.center,
                                         ),
@@ -564,7 +559,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                     const SizedBox(height: 24),
                                     _buildReportItem(
                                       icon: Icons.check_circle,
-                                      color: Colors.green[700]!,
+                                      color: AppColor.green[700]!,
                                       label: "Days Present",
                                       value: (_currentReport?.daysPresent ?? 0)
                                           .toString(),
@@ -572,7 +567,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                     const SizedBox(height: 16),
                                     _buildReportItem(
                                       icon: Icons.access_time,
-                                      color: Colors.orange[700]!,
+                                      color: AppColor.orange[700]!,
                                       label: "Worked",
                                       value: _formatDuration(
                                         _currentReport?.totalHours ??
@@ -582,7 +577,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                     // const SizedBox(height: 16),
                                     // _buildReportItem(
                                     //   icon: Icons.home_work,
-                                    //   color: Colors.purple[700]!,
+                                    //   color: AppColor.purpleMaterial[700]!,
                                     //   label: "Work From Home",
                                     //   value: (_currentReport?.wfhDays ?? 0)
                                     //       .toString(),
@@ -590,7 +585,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                     const SizedBox(height: 16),
                                     _buildReportItem(
                                       icon: Icons.timelapse,
-                                      color: Colors.teal[700]!,
+                                      color: AppColor.teal[700]!,
                                       label: "Half Days",
                                       value:
                                           (_currentReport?.halfLeaveDays ?? 0)
@@ -599,7 +594,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                     const SizedBox(height: 16),
                                     _buildReportItem(
                                       icon: Icons.event_busy,
-                                      color: Colors.red[700]!,
+                                      color: AppColor.red[700]!,
                                       label: "Full Leave Days",
                                       value:
                                           (_currentReport?.fullLeaveDays ?? 0)
@@ -608,7 +603,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                     const SizedBox(height: 16),
                                     _buildReportItem(
                                       icon: Icons.lunch_dining,
-                                      color: Colors.blueGrey,
+                                      color: AppColor.blueGrey,
                                       label: "Break",
                                       value: _formatDuration(
                                         _currentReport?.totalLunchDuration ??
@@ -629,8 +624,8 @@ class _UserReportPageState extends State<UserReportPage> {
                               fontSize: 16, fontWeight: FontWeight.w500),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColor.primary,
+                          foregroundColor: AppColor.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -658,11 +653,11 @@ class _UserReportPageState extends State<UserReportPage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColor.black.withOpacity(0.05),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -678,7 +673,7 @@ class _UserReportPageState extends State<UserReportPage> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: AppColor.black87,
               ),
             ),
           ),

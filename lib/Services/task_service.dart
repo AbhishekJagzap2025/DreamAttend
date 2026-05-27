@@ -126,4 +126,3 @@ class TaskService {
         'Failed to update task state: ${response.statusCode} ${response.body}');
   }
 }
-

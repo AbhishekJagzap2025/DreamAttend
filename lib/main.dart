@@ -1,6 +1,7 @@
 import 'package:dream_attend/models/employee.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/services/api_service.dart';
 import '/services/employee_service.dart';
@@ -79,18 +80,18 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Employee Attendance',
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 241, 246, 249),
+        scaffoldBackgroundColor: AppColor.scaffoldBackground,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color.fromARGB(255, 205, 214, 219),
-          iconTheme: IconThemeData(color: Colors.white),
+          backgroundColor: AppColor.loginBackground,
+          iconTheme: IconThemeData(color: AppColor.white),
           titleTextStyle: TextStyle(
-            color: Colors.white,
+            color: AppColor.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
         colorScheme: const ColorScheme.light(
-          primary: Color.fromARGB(255, 207, 214, 217),
+          primary: AppColor.loginSurface,
         ),
       ),
       routes: {
@@ -327,7 +328,7 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColor.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -337,11 +338,11 @@ class _MyHomePageState extends State<MyHomePage>
               constraints: const BoxConstraints(maxWidth: 400),
               padding: const EdgeInsets.all(32.0),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: AppColor.grey.withOpacity(0.3),
                     blurRadius: 15,
                     offset: const Offset(0, 8),
                   ),
@@ -366,7 +367,7 @@ class _MyHomePageState extends State<MyHomePage>
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF073850),
+                        color: AppColor.primary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -374,7 +375,7 @@ class _MyHomePageState extends State<MyHomePage>
                       'Sign in to your account',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.grey[600],
+                        color: AppColor.grey[600],
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -385,9 +386,9 @@ class _MyHomePageState extends State<MyHomePage>
                         labelText: 'Email',
                         hintText: 'Enter your email',
                         prefixIcon: const Icon(Icons.email_outlined,
-                            color: Color(0xFF073850)),
+                            color: AppColor.primary),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppColor.grey[50],
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -395,7 +396,7 @@ class _MyHomePageState extends State<MyHomePage>
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF073850),
+                            color: AppColor.primary,
                             width: 2,
                           ),
                         ),
@@ -411,19 +412,19 @@ class _MyHomePageState extends State<MyHomePage>
                         labelText: 'Password',
                         hintText: 'Enter your password',
                         prefixIcon: const Icon(Icons.lock_outline,
-                            color: Color(0xFF073850)),
+                            color: AppColor.primary),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isObscure
                                 ? Icons.visibility_off
                                 : Icons.visibility,
-                            color: const Color(0xFF073850),
+                            color: AppColor.primary,
                           ),
                           onPressed: () =>
                               setState(() => _isObscure = !_isObscure),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppColor.grey[50],
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -431,7 +432,7 @@ class _MyHomePageState extends State<MyHomePage>
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF073850),
+                            color: AppColor.primary,
                             width: 2,
                           ),
                         ),
@@ -472,17 +473,16 @@ class _MyHomePageState extends State<MyHomePage>
                                         ),
                                         child: Scaffold(
                                           appBar: AppBar(
-                                            backgroundColor:
-                                                const Color(0xFF073850),
+                                            backgroundColor: AppColor.primary,
                                             title: const Text(
                                               'नियम',
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.white,
+                                                color: AppColor.white,
                                               ),
                                             ),
                                             iconTheme: const IconThemeData(
-                                              color: Colors.white,
+                                              color: AppColor.white,
                                             ),
                                             actions: [
                                               IconButton(
@@ -558,7 +558,7 @@ class _MyHomePageState extends State<MyHomePage>
                                 child: const Text(
                                   'Terms and Conditions',
                                   style: TextStyle(
-                                    color: Color(0xFF073850),
+                                    color: AppColor.primary,
                                     decoration: TextDecoration.underline,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -576,21 +576,21 @@ class _MyHomePageState extends State<MyHomePage>
                         onPressed:
                             (_isLoading || !_agreedToTnC) ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF073850),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColor.primary,
+                          foregroundColor: AppColor.white,
                           minimumSize: const Size(double.infinity, 56),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 5,
-                          shadowColor: Colors.grey.withOpacity(0.4),
+                          shadowColor: AppColor.grey.withOpacity(0.4),
                         ),
                         child: _isLoading
                             ? const SizedBox(
                                 width: 24,
                                 height: 24,
                                 child: CircularProgressIndicator(
-                                  color: Colors.white,
+                                  color: AppColor.white,
                                   strokeWidth: 2,
                                 ),
                               )
@@ -611,7 +611,7 @@ class _MyHomePageState extends State<MyHomePage>
                           "Don't have an account? ",
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: AppColor.grey[600],
                           ),
                         ),
                         GestureDetector(
@@ -623,7 +623,7 @@ class _MyHomePageState extends State<MyHomePage>
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF073850),
+                              color: AppColor.primary,
                             ),
                           ),
                         ),
@@ -646,7 +646,7 @@ class NoInternetPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColor.white,
       body: SafeArea(
         child: Center(
           child: Column(
@@ -664,7 +664,7 @@ class NoInternetPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF073850),
+                  color: AppColor.primary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -673,7 +673,7 @@ class NoInternetPage extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: AppColor.grey[600],
                 ),
               ),
               const SizedBox(height: 32),
@@ -682,14 +682,14 @@ class NoInternetPage extends StatelessWidget {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF073850),
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColor.primary,
+                  foregroundColor: AppColor.white,
                   minimumSize: const Size(200, 56),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 5,
-                  shadowColor: Colors.grey.withOpacity(0.4),
+                  shadowColor: AppColor.grey.withOpacity(0.4),
                 ),
                 child: const Text(
                   'Back to Login',

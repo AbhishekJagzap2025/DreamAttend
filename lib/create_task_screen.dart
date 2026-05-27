@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:intl/intl.dart';
 import '/models/employee.dart';
 import '/models/task_request.dart';
@@ -56,7 +57,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         _employees = employees;
       });
     } catch (e) {
-      _showNotification('Failed to load employees. Please try again.', isError: true);
+      _showNotification('Failed to load employees. Please try again.',
+          isError: true);
     } finally {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -85,87 +87,87 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     }
   }
 
- Future<void> _submitTask() async {
-  // 🔴 1. Trim inputs
-  final taskName = _taskNameController.text.trim();
-  final description = _descriptionController.text.trim();
+  Future<void> _submitTask() async {
+    // 🔴 1. Trim inputs
+    final taskName = _taskNameController.text.trim();
+    final description = _descriptionController.text.trim();
 
-  // 🔴 2. Required field validation
-  if (_selectedEmployee == null) {
-    _showNotification('Please select an employee.', isError: true);
-    return;
-  }
+    // 🔴 2. Required field validation
+    if (_selectedEmployee == null) {
+      _showNotification('Please select an employee.', isError: true);
+      return;
+    }
 
-  if (taskName.isEmpty) {
-    _showNotification('Task name is required.', isError: true);
-    return;
-  }
+    if (taskName.isEmpty) {
+      _showNotification('Task name is required.', isError: true);
+      return;
+    }
 
-  if (deadline == null) {
-    _showNotification('Please select a deadline.', isError: true);
-    return;
-  }
+    if (deadline == null) {
+      _showNotification('Please select a deadline.', isError: true);
+      return;
+    }
 
-  // 🔴 3. Date validation
-  if (startDate != null && deadline!.isBefore(startDate!)) {
-    _showNotification('Deadline cannot be before start date.', isError: true);
-    return;
-  }
+    // 🔴 3. Date validation
+    if (startDate != null && deadline!.isBefore(startDate!)) {
+      _showNotification('Deadline cannot be before start date.', isError: true);
+      return;
+    }
 
-  // 🔴 4. Optional: description length check
-  if (description.length > 200) {
-    _showNotification('Description should be under 200 characters.', isError: true);
-    return;
-  }
-
-  if (!mounted) return;
-  setState(() => _isLoading = true);
-
-  try {
-    final selectedEmployee = _employees.firstWhere(
-      (emp) => emp.id.toString() == _selectedEmployee,
-      orElse: () => throw Exception('Employee not found'),
-    );
-
-    final task = TaskRequest(
-      taskId: 0,
-      employeeId: selectedEmployee.id.toString(),
-      assignBy: widget.currentUserName,
-      name: taskName, // ✅ trimmed
-      startDate: startDate != null
-          ? DateFormat('yyyy-MM-dd').format(startDate!)
-          : null,
-      endDate: null,
-      deadline: DateFormat('yyyy-MM-dd').format(deadline!),
-      description: description.isEmpty ? null : description, // ✅ clean
-      state: 'pending',
-      assignedToName: selectedEmployee.name,
-      assignedByName: widget.currentUserName,
-    );
-
-    await _taskService.createTask(task);
+    // 🔴 4. Optional: description length check
+    if (description.length > 200) {
+      _showNotification('Description should be under 200 characters.',
+          isError: true);
+      return;
+    }
 
     if (!mounted) return;
+    setState(() => _isLoading = true);
 
-    _showNotification('Task created successfully.');
+    try {
+      final selectedEmployee = _employees.firstWhere(
+        (emp) => emp.id.toString() == _selectedEmployee,
+        orElse: () => throw Exception('Employee not found'),
+      );
 
-    _clearForm();
-    widget.onTaskCreated();
-    Navigator.pop(context);
+      final task = TaskRequest(
+        taskId: 0,
+        employeeId: selectedEmployee.id.toString(),
+        assignBy: widget.currentUserName,
+        name: taskName, // ✅ trimmed
+        startDate: startDate != null
+            ? DateFormat('yyyy-MM-dd').format(startDate!)
+            : null,
+        endDate: null,
+        deadline: DateFormat('yyyy-MM-dd').format(deadline!),
+        description: description.isEmpty ? null : description, // ✅ clean
+        state: 'pending',
+        assignedToName: selectedEmployee.name,
+        assignedByName: widget.currentUserName,
+      );
 
-  } catch (e) {
-    if (!mounted) return;
+      await _taskService.createTask(task);
 
-    // 🔴 5. Clean generic error message
-    _showNotification(
-      'Failed to create task. Please try again.',
-      isError: true,
-    );
-  } finally {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      if (!mounted) return;
+
+      _showNotification('Task created successfully.');
+
+      _clearForm();
+      widget.onTaskCreated();
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      // 🔴 5. Clean generic error message
+      _showNotification(
+        'Failed to create task. Please try again.',
+        isError: true,
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    }
   }
-}
 
   void _showNotification(String message, {bool isError = false}) {
     if (!mounted) return;
@@ -194,7 +196,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF073850))),
+                color: AppColor.primary)),
         const SizedBox(height: 8),
         IgnorePointer(
           ignoring: _isLoading || _employees.isEmpty,
@@ -204,7 +206,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               border: OutlineInputBorder(),
               hintText: 'Select employee',
               filled: true,
-              fillColor: Colors.white,
+              fillColor: AppColor.white,
             ),
             items: _employees
                 .map((e) => DropdownMenuItem(
@@ -227,7 +229,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF073850))),
+                color: AppColor.primary)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -236,7 +238,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             border: const OutlineInputBorder(),
             hintText: 'Enter ${label.toLowerCase()}',
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColor.white,
           ),
         ),
       ],
@@ -251,16 +253,16 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF073850))),
+                color: AppColor.primary)),
         const SizedBox(height: 8),
         InkWell(
           onTap: () => _selectDate(context, isStartDate),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade400),
+              border: Border.all(color: AppColor.grey.shade400),
               borderRadius: BorderRadius.circular(8),
-              color: Colors.white,
+              color: AppColor.white,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -268,7 +270,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                 Text(date != null
                     ? DateFormat('dd-MM-yyyy').format(date)
                     : 'Select Date'),
-                const Icon(Icons.calendar_today, color: Colors.blue),
+                const Icon(Icons.calendar_today, color: AppColor.blue),
               ],
             ),
           ),
@@ -280,17 +282,17 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColor.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColor.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Create New Task',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF073850),
+        backgroundColor: AppColor.primary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -321,14 +323,14 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                             Navigator.pop(context);
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppColor.red,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: const Text('Cancel',
-                        style: TextStyle(color: Colors.white, fontSize: 16)),
+                        style: TextStyle(color: AppColor.white, fontSize: 16)),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -336,7 +338,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _submitTask,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF073850),
+                      backgroundColor: AppColor.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -347,10 +349,10 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
+                                color: AppColor.white, strokeWidth: 2))
                         : const Text('Create Task',
                             style:
-                                TextStyle(color: Colors.white, fontSize: 16)),
+                                TextStyle(color: AppColor.white, fontSize: 16)),
                   ),
                 ),
               ],

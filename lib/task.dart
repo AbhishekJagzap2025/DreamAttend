@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:intl/intl.dart';
 import '/models/task_request.dart';
 import '/create_task_screen.dart';
@@ -52,9 +53,9 @@ class _TaskState extends State<Task> {
     } catch (e) {
       // _showNotification('Initialization failed: $e', isError: true);
       showAppSnackBar(
-  message: 'Initialization failed',
-  type: AppSnackBarType.error,
-);
+        message: 'Initialization failed',
+        type: AppSnackBarType.error,
+      );
     } finally {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -84,9 +85,9 @@ class _TaskState extends State<Task> {
     } catch (e) {
       // _showNotification('Failed to load tasks: $e', isError: true);
       showAppSnackBar(
-  message: 'Failed to load tasks',
-  type: AppSnackBarType.error,
-);
+        message: 'Failed to load tasks',
+        type: AppSnackBarType.error,
+      );
     }
   }
 
@@ -113,10 +114,10 @@ class _TaskState extends State<Task> {
 
   Future<bool> _updateTaskState(int taskId, String newState) async {
     if (!widget.groups.contains('dm_employee.group_hr_employee')) {
-     showAppSnackBar(
-  message: 'Only employees can update task status',
-  type: AppSnackBarType.warning,
-);
+      showAppSnackBar(
+        message: 'Only employees can update task status',
+        type: AppSnackBarType.warning,
+      );
       return false;
     }
 
@@ -137,17 +138,16 @@ class _TaskState extends State<Task> {
       });
 
       showAppSnackBar(
-  
-  message: 'Task updated successfully.',
-  type: AppSnackBarType.success,
-);
+        message: 'Task updated successfully.',
+        type: AppSnackBarType.success,
+      );
       return true;
     } catch (e) {
       // _showNotification('Failed to update task: $e', isError: true);
       showAppSnackBar(
-  message: 'Failed to update task',
-  type: AppSnackBarType.error,
-);
+        message: 'Failed to update task',
+        type: AppSnackBarType.error,
+      );
       return false;
     } finally {
       if (mounted) {
@@ -155,8 +155,6 @@ class _TaskState extends State<Task> {
       }
     }
   }
-
- 
 
   void _filterTasks() {
     setState(() {
@@ -169,19 +167,6 @@ class _TaskState extends State<Task> {
       _showFilter = !_showFilter;
       _tempFilterStatus = _selectedFilterStatus;
     });
-  }
-
-  Color _getStatusColor(String? status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'in_progress':
-        return Colors.blue;
-      case 'done':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
   }
 
   String formatDate(String? date) {
@@ -199,10 +184,10 @@ class _TaskState extends State<Task> {
       width: double.infinity,
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: AppColor.black.withOpacity(0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -217,7 +202,7 @@ class _TaskState extends State<Task> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF073850),
+              color: AppColor.primary,
             ),
           ),
           const SizedBox(height: 12),
@@ -234,21 +219,23 @@ class _TaskState extends State<Task> {
               FilterChip(
                 label: const Text('Pending'),
                 selected: _tempFilterStatus == 'pending',
-                avatar: CircleAvatar(backgroundColor: Colors.orange, radius: 8),
+                avatar:
+                    CircleAvatar(backgroundColor: AppColor.orange, radius: 8),
                 onSelected: (v) =>
                     setState(() => _tempFilterStatus = v ? 'pending' : null),
               ),
               FilterChip(
                 label: const Text('In Progress'),
                 selected: _tempFilterStatus == 'in_progress',
-                avatar: CircleAvatar(backgroundColor: Colors.blue, radius: 8),
+                avatar: CircleAvatar(backgroundColor: AppColor.blue, radius: 8),
                 onSelected: (v) => setState(
                     () => _tempFilterStatus = v ? 'in_progress' : null),
               ),
               FilterChip(
                 label: const Text('Done'),
                 selected: _tempFilterStatus == 'done',
-                avatar: CircleAvatar(backgroundColor: Colors.green, radius: 8),
+                avatar:
+                    CircleAvatar(backgroundColor: AppColor.green, radius: 8),
                 onSelected: (v) =>
                     setState(() => _tempFilterStatus = v ? 'done' : null),
               ),
@@ -267,7 +254,8 @@ class _TaskState extends State<Task> {
                     _filterTasks();
                   });
                 },
-                child: const Text('Clear', style: TextStyle(color: Colors.red)),
+                child:
+                    const Text('Clear', style: TextStyle(color: AppColor.red)),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
@@ -278,10 +266,10 @@ class _TaskState extends State<Task> {
                     _filterTasks();
                   });
                 },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF073850)),
-                child:
-                    const Text('Apply', style: TextStyle(color: Colors.white)),
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: AppColor.primary),
+                child: const Text('Apply',
+                    style: TextStyle(color: AppColor.white)),
               ),
             ],
           ),
@@ -328,7 +316,7 @@ class _TaskState extends State<Task> {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
-                        color: Color(0xFF073850),
+                        color: AppColor.primary,
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -338,13 +326,13 @@ class _TaskState extends State<Task> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(task.state),
+                      color: AppColor.taskStatusColor(task.state),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       displayState.toUpperCase(),
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColor.white,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
@@ -356,16 +344,17 @@ class _TaskState extends State<Task> {
               const SizedBox(height: 8),
               Text(
                 'Assigned to: ${task.assignedToName ?? 'N/A'}',
-                style: TextStyle(color: Colors.grey[700], fontSize: 15),
+                style: TextStyle(color: AppColor.grey[700], fontSize: 15),
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
+                  Icon(Icons.calendar_today,
+                      size: 14, color: AppColor.grey[600]),
                   const SizedBox(width: 4),
                   Text(
                     'Deadline: ${formatDate(task.deadline)}',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    style: TextStyle(color: AppColor.grey[600], fontSize: 14),
                   ),
                 ],
               ),
@@ -379,11 +368,11 @@ class _TaskState extends State<Task> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColor.grey[100],
       appBar: AppBar(
         title: const Text('Task Assignment',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF073850),
+        backgroundColor: AppColor.primary,
       ),
       floatingActionButton:
           widget.groups.contains('dm_employee.group_task_assigner') ||
@@ -403,8 +392,8 @@ class _TaskState extends State<Task> {
                       ),
                     );
                   },
-                  backgroundColor: const Color(0xFF073850),
-                  child: const Icon(Icons.add, color: Colors.white),
+                  backgroundColor: AppColor.primary,
+                  child: const Icon(Icons.add, color: AppColor.white),
                 )
               : null,
       body: Column(
@@ -423,17 +412,17 @@ class _TaskState extends State<Task> {
                   child: Center(child: CircularProgressIndicator()))
               : _filteredTasks.isEmpty
                   ? const Expanded(
-                      child: Center(child: 
-                      // Text('No tasks available')
-                                            Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.task_alt, size: 50, color: Colors.grey),
-                          SizedBox(height: 10),
-                          Text('No tasks available'),
-                        ],
-                      )
-                      ))
+                      child: Center(
+                          child:
+                              // Text('No tasks available')
+                              Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.task_alt, size: 50, color: AppColor.grey),
+                        SizedBox(height: 10),
+                        Text('No tasks available'),
+                      ],
+                    )))
                   : Expanded(
                       child: ListView.builder(
                         itemCount: _filteredTasks.length,
@@ -475,19 +464,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   void initState() {
     super.initState();
     _task = widget.task;
-  }
-
-  Color _getStatusColor(String? status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'in_progress':
-        return Colors.blue;
-      case 'done':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
   }
 
   String formatDate(String? date) {
@@ -550,14 +526,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               '$label:',
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF073850),
+                color: AppColor.primary,
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(color: Colors.grey[800], fontSize: 16),
+              style: TextStyle(color: AppColor.grey[800], fontSize: 16),
             ),
           ),
         ],
@@ -570,17 +546,17 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final displayState = _task.formattedState(_task.state ?? 'pending');
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColor.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColor.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Task Details',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF073850),
+        backgroundColor: AppColor.primary,
       ),
       body: Column(
         children: [
@@ -594,7 +570,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF073850),
+                      color: AppColor.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -606,7 +582,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColor.white,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -616,13 +592,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(_task.state),
+                            color: AppColor.taskStatusColor(_task.state),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             displayState.toUpperCase(),
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColor.white,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
@@ -649,11 +625,11 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF073850),
+                              color: AppColor.primary,
                             ),
                           ),
                           const SizedBox(height: 16),
-                           _buildDetailRow(
+                          _buildDetailRow(
                               'Assigned To', _task.assignedToName ?? 'N/A'),
                           const Divider(height: 24),
                           _buildDetailRow(
@@ -665,7 +641,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           _buildDetailRow(
                               'Deadline', formatDate(_task.deadline)),
                           const Divider(height: 24),
-                          _buildDetailRow('End Date', formatDate(_task.endDate)),
+                          _buildDetailRow(
+                              'End Date', formatDate(_task.endDate)),
                         ],
                       ),
                     ),
@@ -688,7 +665,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF073850),
+                              color: AppColor.primary,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -696,13 +673,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             padding: const EdgeInsets.all(16),
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.grey[50],
+                              color: AppColor.grey[50],
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               _task.description ?? 'No description provided',
                               style: TextStyle(
-                                color: Colors.grey[800],
+                                color: AppColor.grey[800],
                                 fontSize: 16,
                                 height: 1.5,
                               ),
@@ -723,13 +700,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.white,
                 border: Border(
-                  top: BorderSide(color: Colors.grey[300]!, width: 1),
+                  top: BorderSide(color: AppColor.grey[300]!, width: 1),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: AppColor.black.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, -2),
                   ),
@@ -743,7 +720,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF073850),
+                      color: AppColor.primary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -760,7 +737,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         _buildStatusButton(
                           label: 'Pending',
                           icon: Icons.access_time,
-                          color: Colors.orange,
+                          color: AppColor.orange,
                           status: 'Pending',
                           isActive: _task.state == 'pending',
                           isDisabled: !_isStatusTransitionAllowed(
@@ -775,7 +752,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         _buildStatusButton(
                           label: 'In Progress',
                           icon: Icons.play_circle_fill,
-                          color: Colors.blue,
+                          color: AppColor.blue,
                           status: 'In Progress',
                           isActive: _task.state == 'in_progress',
                           isDisabled: !_isStatusTransitionAllowed(
@@ -789,7 +766,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         _buildStatusButton(
                           label: 'Done',
                           icon: Icons.check_circle,
-                          color: Colors.green,
+                          color: AppColor.green,
                           status: 'Done',
                           isActive: _task.state == 'done',
                           isDisabled:
@@ -823,12 +800,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           decoration: BoxDecoration(
             color: isActive
                 ? color
-                : (isDisabled ? Colors.grey[300] : color.withOpacity(0.1)),
+                : (isDisabled ? AppColor.grey[300] : color.withOpacity(0.1)),
             shape: BoxShape.circle,
             border: Border.all(
               color: isActive
                   ? color
-                  : (isDisabled ? Colors.grey[400]! : color.withOpacity(0.3)),
+                  : (isDisabled ? AppColor.grey[400]! : color.withOpacity(0.3)),
               width: 2,
             ),
             boxShadow: isActive
@@ -847,8 +824,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               icon,
               size: 32,
               color: isActive
-                  ? Colors.white
-                  : (isDisabled ? Colors.grey[500] : color),
+                  ? AppColor.white
+                  : (isDisabled ? AppColor.grey[500] : color),
             ),
           ),
         ),
@@ -858,7 +835,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           style: TextStyle(
             color: isActive
                 ? color
-                : (isDisabled ? Colors.grey[500] : Colors.grey[700]),
+                : (isDisabled ? AppColor.grey[500] : AppColor.grey[700]),
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
             fontSize: 14,
           ),
@@ -885,13 +862,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: AppColor.grey[200],
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               'Not Allowed',
               style: TextStyle(
-                color: Colors.grey[600],
+                color: AppColor.grey[600],
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
               ),
@@ -912,7 +889,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           title: const Text(
             'Cannot Update Status',
             style: TextStyle(
-              color: Colors.red,
+              color: AppColor.red,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -924,7 +901,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF073850),
+                backgroundColor: AppColor.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -932,7 +909,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               child: const Text(
                 'OK',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColor.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -960,7 +937,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Cancel',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+              style: TextStyle(color: AppColor.grey, fontSize: 16),
             ),
           ),
           ElevatedButton(
@@ -982,7 +959,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               setState(() => _isUpdating = false);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF073850),
+              backgroundColor: AppColor.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -991,7 +968,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             child: const Text(
               'Update',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColor.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),

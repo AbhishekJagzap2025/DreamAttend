@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:developer' as developer;
 import '/models/payslip.dart';
@@ -276,7 +275,8 @@ class PayslipService {
             payload['success'] == true;
 
         if (isSuccess) {
-          final payslipMap = _extractPayslipMap(payload) ?? _extractPayslipMap(data);
+          final payslipMap =
+              _extractPayslipMap(payload) ?? _extractPayslipMap(data);
 
           if (payslipMap != null) {
             final payslip = Payslip.fromJson(payslipMap);
@@ -286,8 +286,8 @@ class PayslipService {
             return payslip;
           }
 
-          final payslipId = (payload['id'] as num?)?.toInt() ??
-              (data['id'] as num?)?.toInt();
+          final payslipId =
+              (payload['id'] as num?)?.toInt() ?? (data['id'] as num?)?.toInt();
           if (payslipId != null) {
             developer.log(
                 'Create response succeeded without full payslip details, fetching payslip ID=$payslipId',
@@ -325,14 +325,16 @@ class PayslipService {
           developer.log(
               'Create payslip succeeded but response did not include enough data to identify the created payslip',
               name: 'PayslipService');
-          throw Exception(
-              payload['message'] ?? data['message'] ?? 'Payslip created but response was incomplete');
+          throw Exception(payload['message'] ??
+              data['message'] ??
+              'Payslip created but response was incomplete');
         } else {
           developer.log(
               'Failed to create payslip: ${payload['message'] ?? data['message'] ?? 'Unknown error'}',
               name: 'PayslipService');
-          throw Exception(
-              payload['message'] ?? data['message'] ?? 'Failed to create payslip');
+          throw Exception(payload['message'] ??
+              data['message'] ??
+              'Failed to create payslip');
         }
       } else {
         final data = jsonDecode(response.body);
@@ -382,8 +384,8 @@ class PayslipService {
 
           if (computedLines.isEmpty &&
               payload['data'] is Map<String, dynamic>) {
-            computedLines =
-                _mapComputedLines((payload['data'] as Map<String, dynamic>)['line_ids']);
+            computedLines = _mapComputedLines(
+                (payload['data'] as Map<String, dynamic>)['line_ids']);
           }
 
           if (computedLines.isEmpty &&

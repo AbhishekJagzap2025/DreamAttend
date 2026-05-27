@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import '/services/employee_service.dart';
@@ -65,15 +66,15 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
                   .toList();
             });
           } else {
-                      setState(() {
-            _advancePayRecords = (response.data as List)
-                .map((item) => AdvancePayData.fromJson(item))
-                .toList();
+            setState(() {
+              _advancePayRecords = (response.data as List)
+                  .map((item) => AdvancePayData.fromJson(item))
+                  .toList();
 
-            // 👉 ADD THIS LINE
-            _advancePayRecords.sort((a, b) =>
-                DateTime.parse(b.date).compareTo(DateTime.parse(a.date)));
-          });
+              // 👉 ADD THIS LINE
+              _advancePayRecords.sort((a, b) =>
+                  DateTime.parse(b.date).compareTo(DateTime.parse(a.date)));
+            });
           }
         } else {
           _showErrorSnackbar('Invalid response format: Expected a list');
@@ -102,6 +103,7 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
       setState(() => _isLoading = false);
     }
   }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -112,20 +114,20 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Colors.green, // Selected date highlight
-              onPrimary: Colors.white, // Text color on selected date
-              onSurface: Colors.black, // Default text color
+              primary: AppColor.green, // Selected date highlight
+              onPrimary: AppColor.white, // Text color on selected date
+              onSurface: AppColor.black, // Default text color
             ),
             textButtonTheme: TextButtonThemeData(
               style: ButtonStyle(
                 foregroundColor: WidgetStateProperty.resolveWith<Color>(
                   (Set<WidgetState> states) {
                     if (states.contains(WidgetState.disabled)) {
-                      return Colors.grey; // Disabled button color
+                      return AppColor.grey; // Disabled button color
                     }
                     // Detect if it's the "Cancel" button based on the context
                     final isCancel = states.contains(WidgetState.error);
-                    return isCancel ? Colors.red : Colors.green;
+                    return isCancel ? AppColor.red : AppColor.green;
                   },
                 ),
               ),
@@ -227,23 +229,23 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
         title: const Text(
           'Advance Pay',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColor.white,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: const Color(0xFF073850),
+        backgroundColor: AppColor.primary,
         systemOverlayStyle: SystemUiOverlayStyle.light,
         elevation: 4,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColor.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: AppColor.white),
             onPressed: _loadAdvancePayRecords,
           ),
           IconButton(
             icon: Icon(
               _groupByEmployee ? Icons.group : Icons.list,
-              color: Colors.white,
+              color: AppColor.white,
             ),
             onPressed: _toggleGroupByEmployee,
             tooltip: _groupByEmployee ? 'Show ungrouped' : 'Show grouped',
@@ -296,8 +298,8 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
                                 final record = filtered[index];
                                 return Card(
                                   elevation: 2,
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 4),
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 4),
                                   child: ListTile(
                                     title: Text(
                                       record.employeeName,
@@ -320,8 +322,8 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
                                     ),
                                     trailing: Text(
                                       'ID: ${record.id}',
-                                      style: const TextStyle(
-                                          color: Colors.grey),
+                                      style:
+                                          const TextStyle(color: AppColor.grey),
                                     ),
                                   ),
                                 );
@@ -340,9 +342,9 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
           ? null
           : FloatingActionButton(
               onPressed: _toggleForm,
-              backgroundColor: const Color(0xFF073850),
+              backgroundColor: AppColor.primary,
               tooltip: 'Add advance pay',
-              child: const Icon(Icons.add, color: Colors.white),
+              child: const Icon(Icons.add, color: AppColor.white),
             ),
     );
   }
@@ -355,11 +357,11 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColor.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: AppColor.black.withOpacity(0.2),
               blurRadius: 8,
               spreadRadius: 2,
             ),
@@ -424,7 +426,7 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(
                                   vertical: 4, horizontal: 8),
-                              color: Colors.grey.shade300,
+                              color: AppColor.grey.shade300,
                               child: Text(
                                 firstLetter,
                                 style: const TextStyle(
@@ -498,7 +500,7 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
                     const SizedBox(width: 16),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: AppColor.red,
                       ),
                       onPressed: _isSubmitting ? null : _resetForm,
                       child: const Text('Reset'),
@@ -506,19 +508,19 @@ class _AdvancePayPageState extends State<AdvancePayPage> {
                     const SizedBox(width: 16),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF073850),
+                        backgroundColor: AppColor.primary,
                       ),
                       onPressed: _isSubmitting ? null : _submitAdvancePay,
                       child: _isSubmitting
                           ? const CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color.fromARGB(255, 149, 58, 58)),
+                                  AppColor.advanceLoader),
 
-                              // AlwaysStoppedAnimation<Color>(Colors.white),
+                              // AlwaysStoppedAnimation<Color>(AppColor.white),
                             )
                           : const Text(
                               'Submit',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: AppColor.white),
                             ),
                     ),
                   ],

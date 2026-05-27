@@ -1,5 +1,6 @@
 import 'package:dream_attend/report.dart';
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '/models/attendance.dart';
@@ -33,14 +34,15 @@ class AppStrings {
       "Cannot check out for a different day.";
   static const cannotLunchOutDifferentDay =
       "Cannot mark lunch out for a different day.";
-  static const lunchOutAlreadyRecorded = "Lunch out already recorded for today.";
+  static const lunchOutAlreadyRecorded =
+      "Lunch out already recorded for today.";
   static const startLunchBreakFirst = "Start your lunch break first.";
   static const cannotLunchInDifferentDay =
       "Cannot mark lunch in for a different day.";
   static const serverEndpointNotFound =
       "Server endpoint not found. Contact admin.";
   static const serverError = "Server error. Try again later.";
-  static const checkInError = "Unable to record check-in. Please try again.";
+  static const checkInError = "Attendance Already Marked for today.";
   static const checkOutError = "Unable to record check-out. Please try again.";
   static const lunchOutError = "Unable to record lunch out. Please try again.";
   static const lunchInError = "Unable to record lunch in. Please try again.";
@@ -75,6 +77,8 @@ class _AttendancePageState extends State<AttendancePage> {
   final AttendanceService _attendanceService = AttendanceService();
   bool _isLoading = true;
   bool _isActionLoading = false;
+  int? _activeActionIndex;
+  bool _isCreateRecordLoading = false;
   String? _loadErrorMessage;
   final TextEditingController _searchController = TextEditingController();
   DateTime? _selectedDate;
@@ -91,6 +95,40 @@ class _AttendancePageState extends State<AttendancePage> {
         '${istTime.minute.toString().padLeft(2, '0')} $period';
   }
 
+  bool _canShowFabAfter15Min() {
+    final istLocation = tz.getLocation('Asia/Kolkata');
+    final now = tz.TZDateTime.now(istLocation);
+
+    // final currentUser = users.firstWhere(
+    //   (user) =>
+    //       user.name.toLowerCase() ==
+    //       widget.currentUserName.toLowerCase(),
+    //   orElse: () => Attendance(name: '', checkIn: null),
+    // );
+    final currentUserList = users
+        .where(
+          (user) =>
+              user.name.toLowerCase() == widget.currentUserName.toLowerCase(),
+        )
+        .toList();
+
+    if (currentUserList.isEmpty || currentUserList.first.checkIn == null) {
+      return true;
+    }
+
+    final currentUser = currentUserList.first;
+
+    if (currentUser.checkIn == null) return true;
+
+    final checkInTime = currentUser.checkIn is tz.TZDateTime
+        ? currentUser.checkIn as tz.TZDateTime
+        : tz.TZDateTime.from(currentUser.checkIn!, istLocation);
+
+    final difference = now.difference(checkInTime);
+
+    return difference.inMinutes >= 15;
+  }
+
   String _formatAttendanceDate(Attendance user) {
     final recordedAt =
         user.checkIn ?? user.lunchOut ?? user.lunchIn ?? user.checkOut;
@@ -104,6 +142,29 @@ class _AttendancePageState extends State<AttendancePage> {
     return '${istTime.day.toString().padLeft(2, '0')}-'
         '${istTime.month.toString().padLeft(2, '0')}-'
         '${istTime.year}';
+  }
+
+  DateTime _dateOnlyInIst(DateTime date) {
+    final istLocation = tz.getLocation('Asia/Kolkata');
+    final istTime =
+        date is tz.TZDateTime ? date : tz.TZDateTime.from(date, istLocation);
+    return DateTime(istTime.year, istTime.month, istTime.day);
+  }
+
+  bool _isSameIstDate(DateTime first, DateTime second) {
+    return _dateOnlyInIst(first) == _dateOnlyInIst(second);
+  }
+
+  bool get _hasCheckedInToday {
+    final istLocation = tz.getLocation('Asia/Kolkata');
+    final now = tz.TZDateTime.now(istLocation);
+
+    return users.any((user) {
+      if (user.name.toLowerCase() != widget.currentUserName.toLowerCase()) {
+        return false;
+      }
+      return user.checkIn != null && _isSameIstDate(user.checkIn!, now);
+    });
   }
 
   String formatDuration(String time) {
@@ -240,11 +301,20 @@ class _AttendancePageState extends State<AttendancePage> {
     return distanceInMeters <= allowedRadiusInMeters;
   }
 
-  Future<void> _runAction(Future<void> Function() action) async {
-    if (_isActionLoading) return;
+  Future<void> _runAction(
+    Future<void> Function() action, {
+    int? actionIndex,
+    bool showFabLoader = false,
+  }) async {
+    if (_isActionLoading || _isCreateRecordLoading) return;
 
     setState(() {
-      _isActionLoading = true;
+      if (showFabLoader) {
+        _isCreateRecordLoading = true;
+      } else {
+        _isActionLoading = true;
+        _activeActionIndex = actionIndex;
+      }
     });
 
     try {
@@ -252,7 +322,12 @@ class _AttendancePageState extends State<AttendancePage> {
     } finally {
       if (mounted) {
         setState(() {
-          _isActionLoading = false;
+          if (showFabLoader) {
+            _isCreateRecordLoading = false;
+          } else {
+            _isActionLoading = false;
+            _activeActionIndex = null;
+          }
         });
       }
     }
@@ -311,7 +386,7 @@ class _AttendancePageState extends State<AttendancePage> {
           type: AppSnackBarType.error,
         );
       }
-    });
+    }, actionIndex: index);
   }
 
   void markCheckOut(int index) async {
@@ -352,7 +427,7 @@ class _AttendancePageState extends State<AttendancePage> {
         if (checkInDate != today) {
           showAppSnackBar(
             message: AppStrings.cannotCheckOutDifferentDay,
-            type: AppSnackBarType.error,
+            type: AppSnackBarType.warning,
           );
           return;
         }
@@ -391,7 +466,7 @@ class _AttendancePageState extends State<AttendancePage> {
           type: AppSnackBarType.error,
         );
       }
-    });
+    }, actionIndex: index);
   }
 
   void markLunchOut(int index) async {
@@ -432,7 +507,7 @@ class _AttendancePageState extends State<AttendancePage> {
         if (checkInDate != today) {
           showAppSnackBar(
             message: AppStrings.cannotLunchOutDifferentDay,
-            type: AppSnackBarType.error,
+            type: AppSnackBarType.warning,
           );
           return;
         }
@@ -464,7 +539,7 @@ class _AttendancePageState extends State<AttendancePage> {
           type: AppSnackBarType.error,
         );
       }
-    });
+    }, actionIndex: index);
   }
 
   void markLunchIn(int index) async {
@@ -505,7 +580,7 @@ class _AttendancePageState extends State<AttendancePage> {
         if (lunchOutDate != today) {
           showAppSnackBar(
             message: AppStrings.cannotLunchInDifferentDay,
-            type: AppSnackBarType.error,
+            type: AppSnackBarType.warning,
           );
           return;
         }
@@ -543,7 +618,7 @@ class _AttendancePageState extends State<AttendancePage> {
           type: AppSnackBarType.error,
         );
       }
-    });
+    }, actionIndex: index);
   }
 
   void createAttendanceRecord() async {
@@ -569,20 +644,13 @@ class _AttendancePageState extends State<AttendancePage> {
 
         final istLocation = tz.getLocation('Asia/Kolkata');
         final now = tz.TZDateTime.now(istLocation);
-        final today = DateTime(now.year, now.month, now.day);
 
-        final alreadyCheckedIn = users.any((user) {
-          if (user.name.toLowerCase() != widget.currentUserName.toLowerCase()) {
-            return false;
-          }
-          if (user.checkIn == null) return false;
-          final checkInDate = DateTime(
-            user.checkIn!.year,
-            user.checkIn!.month,
-            user.checkIn!.day,
-          );
-          return checkInDate == today;
-        });
+        final alreadyCheckedIn = users.any(
+          (user) =>
+              user.name.toLowerCase() == widget.currentUserName.toLowerCase() &&
+              user.checkIn != null &&
+              _isSameIstDate(user.checkIn!, now),
+        );
 
         if (alreadyCheckedIn) {
           showAppSnackBar(
@@ -628,7 +696,7 @@ class _AttendancePageState extends State<AttendancePage> {
           type: AppSnackBarType.error,
         );
       }
-    });
+    }, showFabLoader: true);
   }
 
   void _filterUsers() {
@@ -656,56 +724,69 @@ class _AttendancePageState extends State<AttendancePage> {
     });
   }
 
-  Attendance? get _currentUserAttendance {
-    if (widget.isAdmin || filteredUsers.isEmpty) return null;
-    return filteredUsers.first;
-  }
-
   Widget _buildActionButton(Attendance user, int index) {
     if (user.checkIn == null) {
-      return _primaryButton("Check In", Colors.green, () => markCheckIn(index));
+      return _primaryButton(
+        "Check In",
+        AppColor.green,
+        () => markCheckIn(index),
+        isLoading: _isActionLoading && _activeActionIndex == index,
+      );
     } else if (user.lunchOut == null) {
       return _primaryButton(
         "Lunch Out",
-        Colors.orange,
+        AppColor.orange,
         () => markLunchOut(index),
+        isLoading: _isActionLoading && _activeActionIndex == index,
       );
     } else if (user.lunchIn == null) {
-      return _primaryButton("Lunch In", Colors.blue, () => markLunchIn(index));
+      return _primaryButton(
+        "Lunch In",
+        AppColor.blue,
+        () => markLunchIn(index),
+        isLoading: _isActionLoading && _activeActionIndex == index,
+      );
     } else if (user.checkOut == null) {
-      return _primaryButton("Check Out", Colors.red, () => markCheckOut(index));
+      return _primaryButton(
+        "Check Out",
+        AppColor.red,
+        () => markCheckOut(index),
+        isLoading: _isActionLoading && _activeActionIndex == index,
+      );
     } else {
-      return _primaryButton("Completed", Colors.grey, null);
+      return _primaryButton("Completed", AppColor.grey, null);
     }
   }
 
   Widget _primaryButton(
     String label,
     Color color,
-    VoidCallback? onPressed,
-  ) {
+    VoidCallback? onPressed, {
+    bool isLoading = false,
+  }) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _isActionLoading ? null : onPressed,
+        onPressed:
+            (_isActionLoading || _isCreateRecordLoading) ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: onPressed == null ? Colors.grey.shade400 : color,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: Colors.grey.shade400,
-          disabledForegroundColor: Colors.white,
+          backgroundColor: onPressed == null ? AppColor.grey.shade400 : color,
+          foregroundColor: AppColor.white,
+          disabledBackgroundColor: AppColor.grey.shade400,
+          disabledForegroundColor: AppColor.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: _isActionLoading
+        child: isLoading
             ? const SizedBox(
                 height: 18,
                 width: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColor.white),
                 ),
               )
             : Text(
@@ -723,7 +804,8 @@ class _AttendancePageState extends State<AttendancePage> {
     return ElevatedButton(
       onPressed: () async {
         try {
-          _reports ??= await _attendanceService.fetchAllEmployeesAttendanceReport(
+          _reports ??=
+              await _attendanceService.fetchAllEmployeesAttendanceReport(
             month: DateTime.now().month.toString().padLeft(2, '0'),
             year: DateTime.now().year,
           );
@@ -736,7 +818,8 @@ class _AttendancePageState extends State<AttendancePage> {
             return;
           }
 
-          final targetName = widget.isAdmin ? user.name : widget.currentUserName;
+          final targetName =
+              widget.isAdmin ? user.name : widget.currentUserName;
 
           final userReport = _reports!.firstWhere(
             (report) =>
@@ -779,8 +862,8 @@ class _AttendancePageState extends State<AttendancePage> {
         }
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColor.primary,
+        foregroundColor: AppColor.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -804,7 +887,7 @@ class _AttendancePageState extends State<AttendancePage> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F9FB),
+        color: AppColor.listBackground,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -812,25 +895,25 @@ class _AttendancePageState extends State<AttendancePage> {
           _buildTimelineItem(
             label: "Check In",
             time: user.checkIn,
-            color: Colors.green,
+            color: AppColor.green,
           ),
           const SizedBox(height: 12),
           _buildTimelineItem(
             label: "Lunch Out",
             time: user.lunchOut,
-            color: Colors.orange,
+            color: AppColor.orange,
           ),
           const SizedBox(height: 12),
           _buildTimelineItem(
             label: "Lunch In",
             time: user.lunchIn,
-            color: Colors.blue,
+            color: AppColor.blue,
           ),
           const SizedBox(height: 12),
           _buildTimelineItem(
             label: "Check Out",
             time: user.checkOut,
-            color: Colors.red,
+            color: AppColor.red,
           ),
         ],
       ),
@@ -848,7 +931,7 @@ class _AttendancePageState extends State<AttendancePage> {
         Icon(
           isPending ? Icons.radio_button_unchecked : Icons.check_circle,
           size: 18,
-          color: isPending ? Colors.grey : color,
+          color: isPending ? AppColor.grey : color,
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -857,7 +940,7 @@ class _AttendancePageState extends State<AttendancePage> {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: AppColor.black87,
             ),
           ),
         ),
@@ -871,11 +954,11 @@ class _AttendancePageState extends State<AttendancePage> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColor.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppColor.black.withOpacity(0.05),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -887,7 +970,7 @@ class _AttendancePageState extends State<AttendancePage> {
             const Icon(
               Icons.wifi_off_rounded,
               size: 36,
-              color: Colors.black54,
+              color: AppColor.black54,
             ),
             const SizedBox(height: 12),
             Text(
@@ -895,7 +978,7 @@ class _AttendancePageState extends State<AttendancePage> {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
+                color: AppColor.black87,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -903,8 +986,8 @@ class _AttendancePageState extends State<AttendancePage> {
             ElevatedButton(
               onPressed: fetchAttendanceData,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-                foregroundColor: Colors.white,
+                backgroundColor: AppColor.primary,
+                foregroundColor: AppColor.white,
               ),
               child: const Text('Retry'),
             ),
@@ -922,7 +1005,7 @@ class _AttendancePageState extends State<AttendancePage> {
       style: TextStyle(
         fontSize: 14,
         fontWeight: isPending ? FontWeight.w500 : FontWeight.w600,
-        color: isPending ? Colors.grey : Colors.black87,
+        color: isPending ? AppColor.grey : AppColor.black87,
       ),
     );
   }
@@ -931,7 +1014,7 @@ class _AttendancePageState extends State<AttendancePage> {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          color: Color.fromARGB(255, 7, 56, 80),
+          color: AppColor.primary,
         ),
       );
     }
@@ -955,18 +1038,18 @@ class _AttendancePageState extends State<AttendancePage> {
             style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: AppColor.black87,
             ),
           ),
           const SizedBox(height: 16),
           if (widget.isAdmin)
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.white,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: AppColor.black.withOpacity(0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -977,20 +1060,20 @@ class _AttendancePageState extends State<AttendancePage> {
                 hintText: 'Search team or employee...',
                 onChanged: _filterUsers,
                 padding: EdgeInsets.zero,
-                iconColor: Colors.grey,
+                iconColor: AppColor.grey,
                 borderSide: BorderSide.none,
                 enabledBorderSide: BorderSide.none,
                 focusedBorderSide: BorderSide.none,
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: 14,
                 ),
-                fillColor: Colors.transparent,
+                fillColor: AppColor.transparent,
                 extraSuffixActions: [
                   if (_selectedDate != null)
                     IconButton(
                       icon: const Icon(
                         Icons.close,
-                        color: Colors.grey,
+                        color: AppColor.grey,
                       ),
                       onPressed: () {
                         setState(() {
@@ -1002,7 +1085,8 @@ class _AttendancePageState extends State<AttendancePage> {
                   IconButton(
                     icon: Icon(
                       Icons.calendar_today,
-                      color: _selectedDate != null ? Colors.blue : Colors.grey,
+                      color:
+                          _selectedDate != null ? AppColor.blue : AppColor.grey,
                     ),
                     onPressed: () async {
                       final DateTime? picked = await showDatePicker(
@@ -1014,12 +1098,12 @@ class _AttendancePageState extends State<AttendancePage> {
                           return Theme(
                             data: ThemeData.light().copyWith(
                               colorScheme: const ColorScheme.light(
-                                primary: Color.fromARGB(255, 7, 56, 80),
-                                onPrimary: Colors.white,
+                                primary: AppColor.primary,
+                                onPrimary: AppColor.white,
                               ),
                               textButtonTheme: TextButtonThemeData(
                                 style: TextButton.styleFrom(
-                                  foregroundColor: Colors.red,
+                                  foregroundColor: AppColor.red,
                                 ),
                               ),
                             ),
@@ -1046,7 +1130,7 @@ class _AttendancePageState extends State<AttendancePage> {
                       "No attendance records found. Please create a record to get started.",
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.black54,
+                        color: AppColor.black54,
                       ),
                     ),
                   )
@@ -1059,11 +1143,11 @@ class _AttendancePageState extends State<AttendancePage> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColor.white,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: AppColor.black.withOpacity(0.05),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -1078,15 +1162,14 @@ class _AttendancePageState extends State<AttendancePage> {
                                 children: [
                                   CircleAvatar(
                                     radius: 24,
-                                    backgroundColor:
-                                        const Color.fromARGB(255, 7, 56, 80),
+                                    backgroundColor: AppColor.primary,
                                     child: Text(
                                       (user.name.trim().isNotEmpty
                                               ? user.name.trim()[0]
                                               : '?')
                                           .toUpperCase(),
                                       style: const TextStyle(
-                                        color: Colors.white,
+                                        color: AppColor.white,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
                                       ),
@@ -1103,7 +1186,7 @@ class _AttendancePageState extends State<AttendancePage> {
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w600,
-                                            color: Colors.black87,
+                                            color: AppColor.black87,
                                           ),
                                         ),
                                         const SizedBox(height: 4),
@@ -1112,7 +1195,7 @@ class _AttendancePageState extends State<AttendancePage> {
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w500,
-                                            color: Colors.grey[600],
+                                            color: AppColor.grey[600],
                                           ),
                                         ),
                                       ],
@@ -1125,14 +1208,15 @@ class _AttendancePageState extends State<AttendancePage> {
                               const SizedBox(height: 16),
                               _buildInfoRow(
                                 icon: Icons.lunch_dining,
-                                color: Colors.orange,
+                                color: AppColor.orange,
                                 label: "Break",
-                                value: formatDuration(user.lunchDurationDisplay),
+                                value:
+                                    formatDuration(user.lunchDurationDisplay),
                               ),
                               const SizedBox(height: 8),
                               _buildInfoRow(
                                 icon: Icons.access_time,
-                                color: Colors.green,
+                                color: AppColor.green,
                                 label: "Worked",
                                 value: formatDuration(user.totalHours),
                               ),
@@ -1160,19 +1244,19 @@ class _AttendancePageState extends State<AttendancePage> {
         title: const Text(
           "Attendance Hub",
           style: TextStyle(
-              fontWeight: FontWeight.w600, fontSize: 20, color: Colors.white),
+              fontWeight: FontWeight.w600, fontSize: 20, color: AppColor.white),
         ),
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
+        backgroundColor: AppColor.primary,
         elevation: 4,
         centerTitle: true,
-        shadowColor: Colors.black.withOpacity(0.2),
+        shadowColor: AppColor.black.withOpacity(0.2),
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFF1F6F9),
-              Color(0xFFE5EAF0),
+              AppColor.scaffoldBackground,
+              AppColor.gradientEnd,
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -1181,25 +1265,27 @@ class _AttendancePageState extends State<AttendancePage> {
         child: _buildBody(),
       ),
       floatingActionButton:
-          !widget.isAdmin &&
-                  _currentUserAttendance != null &&
-                  _currentUserAttendance!.checkIn == null
-          ? FloatingActionButton(
-              onPressed: _isActionLoading ? null : createAttendanceRecord,
-              backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-              tooltip: 'Create Attendance Record',
-              child: _isActionLoading
-                  ? const SizedBox(
-                      height: 22,
-                      width: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-                      ),
-                    )
-                  : const Icon(Icons.add, color: Colors.orange),
-            )
-          : null,
+          // !widget.isAdmin && !_hasCheckedInToday
+          !widget.isAdmin && (!_hasCheckedInToday || _canShowFabAfter15Min())
+              ? FloatingActionButton(
+                  onPressed: (_isActionLoading || _isCreateRecordLoading)
+                      ? null
+                      : createAttendanceRecord,
+                  backgroundColor: AppColor.primary,
+                  tooltip: 'Create Attendance Record',
+                  child: _isCreateRecordLoading
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(AppColor.orange),
+                          ),
+                        )
+                      : const Icon(Icons.add, color: AppColor.orange),
+                )
+              : null,
     );
   }
 
@@ -1221,7 +1307,7 @@ class _AttendancePageState extends State<AttendancePage> {
           "$label:",
           style: const TextStyle(
             fontSize: 14,
-            color: Colors.black87,
+            color: AppColor.black87,
             fontWeight: FontWeight.w500,
           ),
         ),

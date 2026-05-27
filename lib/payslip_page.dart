@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:intl/intl.dart';
-import 'package:table_calendar/table_calendar.dart';
-import '/services/employee_service.dart';
 import '/services/payslip_service.dart';
-import '/models/employee.dart';
 import '/models/payslip.dart';
 import 'dart:developer' as developer;
+import 'create_payslip.dart';
 import 'utils/app_layout.dart';
 import 'widget/search_filter_bar.dart';
 
@@ -17,58 +16,18 @@ class PayslipPage extends StatefulWidget {
 }
 
 class _PayslipPageState extends State<PayslipPage> {
-  final EmployeeService _employeeService = EmployeeService();
   final PayslipService _payslipService = PayslipService();
-  List<Employee> _employees = [];
   List<Payslip> _payslips = [];
-  List<Map<String, dynamic>> _contracts = [];
-  String? _selectedEmployeeName;
-  int? _selectedEmployeeId;
-  int? _selectedContractId;
-  DateTime? _selectedDateFrom;
-  DateTime? _selectedDateTo;
-  final TextEditingController _dateFromController = TextEditingController();
-  final TextEditingController _dateToController = TextEditingController();
-  final TextEditingController _salaryStructureController =
-      TextEditingController();
-  final TextEditingController _advanceDeductionController =
-      TextEditingController();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  final _formKey = GlobalKey<FormState>();
-  DateTime _focusedDay = DateTime.now();
-  bool _isFormOpen = false;
   bool _isLoading = true;
-  bool _isContractsLoading = false;
   final Map<int, Payslip?> _detailedPayslips = {};
   final Map<int, bool> _isDetailLoading = {};
 
   @override
   void initState() {
     super.initState();
-    _fetchEmployees();
     _fetchPayslips();
-  }
-
-  Future<void> _fetchEmployees() async {
-    try {
-      developer.log('Fetching employees', name: 'PayslipPage');
-      final employees = await _employeeService.getEmployees();
-      // setState(() {
-      //   _employees = employees;
-      // });
-              if (!mounted) return;
-        setState(() {
-          _employees = employees;
-        });
-      developer.log(
-          'Employees fetched successfully, count: ${employees.length}',
-          name: 'PayslipPage');
-    } catch (e) {
-      developer.log('Failed to fetch employees: $e',
-          name: 'PayslipPage', error: e);
-      _showSnackBar('Failed to fetch employees: $e');
-    }
   }
 
   Future<void> _fetchPayslips() async {
@@ -123,340 +82,15 @@ class _PayslipPageState extends State<PayslipPage> {
     }
   }
 
-  Future<void> _fetchContracts(int employeeId) async {
-    if (!mounted) return;
-    setState(() {
-      _isContractsLoading = true;
-      _contracts = [];
-      _selectedContractId = null;
-    });
-    developer.log('Fetching contracts for employee ID: $employeeId',
-        name: 'PayslipPage');
-
-    try {
-      final contracts = await _payslipService.fetchContracts(employeeId);
-      final filteredContracts = contracts.where((contract) {
-        final contractEmployeeId = contract['employee_id'] is Map
-            ? contract['employee_id']['id']
-            : contract['employee_id'] is int
-                ? contract['employee_id']
-                : null;
-        final contractEmployeeName = contract['employee_name'] ?? '';
-        return contractEmployeeId == employeeId ||
-            contractEmployeeName == _selectedEmployeeName;
-      }).toList();
-      if (!mounted) return;
-      setState(() {
-        _contracts = filteredContracts;
-        _isContractsLoading = false;
-
-        if (_contracts.isNotEmpty) {
-          final preferredContract = _contracts.firstWhere(
-            (c) => (c['name'] ?? '').contains(_selectedEmployeeName ?? ''),
-            orElse: () => _contracts.first,
-          );
-          _selectedContractId = preferredContract['id'] as int;
-        }
-      });
-      developer.log(
-          'Contracts fetched successfully, count: ${filteredContracts.length}',
-          name: 'PayslipPage');
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isContractsLoading = false;
-      });
-      developer.log('Failed to fetch contracts: $e',
-          name: 'PayslipPage', error: e);
-      _showSnackBar('Failed to fetch contracts: $e');
-    }
-  }
-
-  void _showSnackBar(String msg, {Color color = Colors.green}) {
+  void _showSnackBar(String msg, {Color? color}) {
     developer.log('Showing SnackBar: $msg', name: 'PayslipPage');
-    showStatusSnackBar(msg, color: color);
+    showStatusSnackBar(msg, color: color ?? AppColor.green);
   }
 
-  void _clearForm() {
-    if (!mounted) return;
-    setState(() {
-      _selectedEmployeeName = null;
-      _selectedEmployeeId = null;
-      _selectedContractId = null;
-      _contracts = [];
-      _selectedDateFrom = null;
-      _selectedDateTo = null;
-      _dateFromController.clear();
-      _dateToController.clear();
-      _salaryStructureController.clear();
-      _advanceDeductionController.clear();
-      _isFormOpen = false;
-    });
-    developer.log('Form cleared', name: 'PayslipPage');
-  }
-
-  Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      if (_selectedEmployeeId == null ||
-          _selectedDateFrom == null ||
-          _selectedDateTo == null ||
-          _selectedContractId == null) {
-        _showSnackBar('Please fill all required fields', color: Colors.red);
-        return;
-      }
-
-      if (_selectedDateTo!.isBefore(_selectedDateFrom!)) {
-        _showSnackBar(
-          'End date must be after start date',
-          color: Colors.red,
-        );
-        return;
-      }
-
-      double? advanceDeduction;
-      if (_advanceDeductionController.text.isNotEmpty) {
-        advanceDeduction = double.tryParse(_advanceDeductionController.text);
-        if (advanceDeduction == null) {
-          _showSnackBar('Invalid advance deduction amount', color: Colors.red);
-          return;
-        }
-      }
-
-      developer.log(
-        'Submitting payslip form: employeeId=$_selectedEmployeeId, '
-        'dateFrom=$_selectedDateFrom, dateTo=$_selectedDateTo, contractId=$_selectedContractId, '
-        'advanceDeduction=$advanceDeduction',
-        name: 'PayslipPage',
-      );
-      try {
-        final newPayslip = await _payslipService.createPayslip(
-          employeeId: _selectedEmployeeId!,
-          dateFrom: _selectedDateFrom!,
-          dateTo: _selectedDateTo!,
-          contractId: _selectedContractId!,
-          advanceDeductionAmount: advanceDeduction,
-        );
-        developer.log(
-          'Payslip created: ID=${newPayslip.id}, Employee=${newPayslip.employeeName}, '
-          'Number=${newPayslip.number}, State=${newPayslip.state}',
-          name: 'PayslipPage',
-        );
-
-        // Do NOT auto-compute — user must click Compute Sheet in the details page
-        final createdPayslip = Payslip(
-          id: newPayslip.id,
-          name: newPayslip.name,
-          number: newPayslip.number,
-          employeeName: newPayslip.employeeName,
-          state: newPayslip.state,
-          dateFrom: newPayslip.dateFrom,
-          dateTo: newPayslip.dateTo,
-          employeeId: newPayslip.employeeId,
-          structId: newPayslip.structId,
-          contractId: newPayslip.contractId,
-          companyId: newPayslip.companyId,
-          paid: newPayslip.paid,
-          note: newPayslip.note,
-          creditNote: newPayslip.creditNote,
-          payslipRunId: newPayslip.payslipRunId,
-          workedDaysLineIds: newPayslip.workedDaysLineIds,
-          inputLineIds: newPayslip.inputLineIds,
-          lineIds: const [], // empty until user clicks Compute Sheet
-          advanceDeductionAmount: newPayslip.advanceDeductionAmount,
-          totalAdvancePay: newPayslip.totalAdvancePay,
-          remainingAdvanceBalance: newPayslip.remainingAdvanceBalance,
-        );
-         if (!mounted) return;
-        setState(() {
-          _payslips.add(createdPayslip);
-          _selectedEmployeeName = null;
-          _selectedEmployeeId = null;
-          _selectedContractId = null;
-          _contracts = [];
-          _selectedDateFrom = null;
-          _selectedDateTo = null;
-          _dateFromController.clear();
-          _dateToController.clear();
-          _salaryStructureController.clear();
-          _advanceDeductionController.clear();
-          _isFormOpen = false;
-        });
-
-        developer.log('Payslip added to list and form cleared',
-            name: 'PayslipPage');
-        _showSnackBar('Payslip created successfully', color: Colors.green);
-      } catch (e) {
-        developer.log('Error creating payslip: $e',
-            name: 'PayslipPage', error: e);
-        _showSnackBar('Failed to create payslip: $e', color: Colors.red);
-        return;
-      }
-    } else {
-      developer.log('Form validation failed', name: 'PayslipPage');
-    }
-  }
-
-  Future<void> _showCalendarDialog({required bool isFromDate}) async {
-    DateTime? tempSelectedDate =
-        isFromDate ? _selectedDateFrom : _selectedDateTo;
-    DateTime tempFocusedDay = tempSelectedDate ?? _focusedDay;
-
-    developer.log(
-        'Opening calendar dialog for ${isFromDate ? 'From' : 'To'} date',
-        name: 'PayslipPage');
-
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Select ${isFromDate ? 'From' : 'To'} Date',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: const Color.fromARGB(255, 7, 56, 80),
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                    TableCalendar(
-                      firstDay: DateTime(2000),
-                      lastDay: DateTime(2100),
-                      focusedDay: tempFocusedDay,
-                      selectedDayPredicate: (day) =>
-                          isSameDay(tempSelectedDate, day),
-                      onDaySelected: (selected, focused) {
-                        setDialogState(() {
-                          tempSelectedDate = selected;
-                          tempFocusedDay = focused;
-                        });
-                        developer.log('Selected date: $selected',
-                            name: 'PayslipPage');
-                      },
-                      calendarFormat: CalendarFormat.month,
-                      headerStyle: HeaderStyle(
-                        titleCentered: true,
-                        formatButtonVisible: false,
-                        titleTextStyle:
-                            Theme.of(context).textTheme.titleMedium!.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color.fromARGB(255, 7, 56, 80),
-                                ),
-                      ),
-                      calendarStyle: CalendarStyle(
-                        selectedDecoration: const BoxDecoration(
-                          color: Color.fromARGB(255, 7, 56, 80),
-                          shape: BoxShape.circle,
-                        ),
-                        selectedTextStyle: const TextStyle(color: Colors.white),
-                        todayDecoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          shape: BoxShape.circle,
-                        ),
-                        defaultTextStyle:
-                            const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Wrap(
-                      alignment: WrapAlignment.end,
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            developer.log('Calendar dialog cancelled',
-                                name: 'PayslipPage');
-                            Navigator.pop(context);
-                          },
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (tempSelectedDate != null) {
-                              if (!mounted) return;
-                              setState(() {
-                                _focusedDay = tempFocusedDay;
-                                if (isFromDate) {
-                                  _selectedDateFrom = tempSelectedDate;
-                                  _dateFromController.text =
-                                      DateFormat('dd-MM-yyyy')
-                                          .format(tempSelectedDate!);
-                                } else {
-                                  _selectedDateTo = tempSelectedDate;
-                                  _dateToController.text =
-                                      DateFormat('dd-MM-yyyy')
-                                          .format(tempSelectedDate!);
-                                }
-                              });
-                              developer.log(
-                                'Confirmed ${isFromDate ? 'From' : 'To'} date: $tempSelectedDate',
-                                name: 'PayslipPage',
-                              );
-                            }
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(255, 7, 56, 80),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text('Confirm'),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  InputDecoration _inputDecoration({
-    String? hintText,
-    Widget? prefixIcon,
-    Widget? suffixIcon,
-    String? suffixText,
-  }) {
-    return InputDecoration(
-      hintText: hintText,
-      prefixIcon: prefixIcon,
-      suffixIcon: suffixIcon,
-      suffixText: suffixText,
-      filled: true,
-      fillColor: Colors.grey[50],
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.grey, width: 1),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.grey, width: 1),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(color: Color.fromARGB(255, 7, 56, 80), width: 2),
-      ),
-    );
+  String _formatState(String state) {
+    if (state.isEmpty) return state;
+    final lower = state.toLowerCase();
+    return lower[0].toUpperCase() + lower.substring(1);
   }
 
   Widget _buildDetailRow(String label, String value) {
@@ -469,7 +103,7 @@ class _PayslipPageState extends State<PayslipPage> {
             child: Text(
               label,
               style: const TextStyle(
-                  color: Colors.grey, fontWeight: FontWeight.w500),
+                  color: AppColor.grey, fontWeight: FontWeight.w500),
             ),
           ),
           const SizedBox(width: 12),
@@ -486,32 +120,8 @@ class _PayslipPageState extends State<PayslipPage> {
     );
   }
 
-  Widget _buildFormField({required String label, required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: const Color.fromARGB(255, 7, 56, 80),
-                ),
-          ),
-          const SizedBox(height: 8),
-          child,
-        ],
-      ),
-    );
-  }
-
   @override
   void dispose() {
-    _dateFromController.dispose();
-    _dateToController.dispose();
-    _salaryStructureController.dispose();
-    _advanceDeductionController.dispose();
     _searchController.dispose();
     super.dispose();
     developer.log('PayslipPage disposed', name: 'PayslipPage');
@@ -525,393 +135,224 @@ class _PayslipPageState extends State<PayslipPage> {
           'Payslips',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
         ),
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColor.primary,
+        foregroundColor: AppColor.white,
         elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _isFormOpen
-              ? SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Create New Payslip",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
+          : Column(
+              children: [
+                SearchFilterBar(
+                  controller: _searchController,
+                  hintText: 'Search by employee name...',
+                  onChanged: () {
+                    if (!mounted) return;
+                    setState(() {
+                      _searchQuery = _searchController.text.toLowerCase();
+                    });
+                  },
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _fetchPayslips,
+                    child: Builder(
+                      builder: (context) {
+                        final filteredPayslips = _searchQuery.isEmpty
+                            ? _payslips
+                            : _payslips
+                                .where((p) => p.employeeName
+                                    .toLowerCase()
+                                    .contains(_searchQuery))
+                                .toList();
+                        if (filteredPayslips.isEmpty) {
+                          return const Center(
+                            child: Text(
+                              'No payslips found',
+                              style: TextStyle(color: AppColor.grey),
+                            ),
+                          );
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          itemCount: filteredPayslips.length,
+                          itemBuilder: (context, index) {
+                            final p = filteredPayslips[index];
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                              child: ExpansionTile(
+                                title: Text(
+                                  p.employeeName,
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.w600,
-                                    color: const Color.fromARGB(255, 7, 56, 80),
-                                  ),
-                            ),
-                            const SizedBox(height: 24),
-                            _buildFormField(
-                              label: 'Employee Name',
-                              child: DropdownButtonFormField<String>(
-                                value: _selectedEmployeeName,
-                                decoration: _inputDecoration(
-                                    hintText: 'Select employee'),
-                                items: _employees
-                                    .map((e) => DropdownMenuItem(
-                                          value: e.name,
-                                          child: Text(e.name),
-                                        ))
-                                    .toList(),
-                                onChanged: (val) async {
-                                  final selectedEmployee = _employees
-                                      .firstWhere((e) => e.name == val);
-                                      if (!mounted) return;
-                                  setState(() {
-                                    _selectedEmployeeName = val;
-                                    _selectedEmployeeId = selectedEmployee.id;
-                                  });
-                                  await _fetchContracts(selectedEmployee.id);
-                                },
-                                validator: (val) =>
-                                    val == null ? 'Required' : null,
-                              ),
-                            ),
-                            _buildFormField(
-                              label: 'Contract',
-                              child: _isContractsLoading
-                                  ? const Center(
-                                      child: CircularProgressIndicator(),
-                                    )
-                                  : DropdownButtonFormField<int>(
-                                      value: _selectedContractId,
-                                      decoration: _inputDecoration(
-                                          hintText: 'Select contract'),
-                                      items: _contracts.map((c) {
-                                        return DropdownMenuItem<int>(
-                                          value: c['id'],
-                                          child: Text(c['name'] ?? 'Unknown'),
-                                        );
-                                      }).toList(),
-                                      onChanged: (val) {
-                                        if (!mounted) return;
-                                        setState(() {
-                                          _selectedContractId = val;
-                                        });
-                                      },
-                                      validator: (val) =>
-                                          val == null ? 'Required' : null,
-                                    ),
-                            ),
-                            _buildFormField(
-                              label: 'Date From',
-                              child: TextFormField(
-                                controller: _dateFromController,
-                                decoration: _inputDecoration(
-                                  hintText: 'Select date from',
-                                  suffixIcon: const Icon(Icons.calendar_today),
-                                ),
-                                readOnly: true,
-                                onTap: () =>
-                                    _showCalendarDialog(isFromDate: true),
-                                validator: (val) =>
-                                    val!.isEmpty ? 'Required' : null,
-                              ),
-                            ),
-                            _buildFormField(
-                              label: 'Date To',
-                              child: TextFormField(
-                                controller: _dateToController,
-                                decoration: _inputDecoration(
-                                  hintText: 'Select date to',
-                                  suffixIcon: const Icon(Icons.calendar_today),
-                                ),
-                                readOnly: true,
-                                onTap: () =>
-                                    _showCalendarDialog(isFromDate: false),
-                                validator: (val) =>
-                                    val!.isEmpty ? 'Required' : null,
-                              ),
-                            ),
-                            _buildFormField(
-                              label:
-                                  'Advance Deduction Amount (Optional, negative for deduction)',
-                              child: TextFormField(
-                                controller: _advanceDeductionController,
-                                decoration: _inputDecoration(
-                                  hintText: 'Enter advance deduction amount',
-                                ),
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true, signed: true),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () {
-                                    _clearForm();
-                                  },
-                                  child: const Text(
-                                    'Cancel',
-                                    style: TextStyle(color: Colors.grey),
+                                    color: AppColor.primary,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                ElevatedButton(
-                                  onPressed: _submitForm,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color.fromARGB(255, 7, 56, 80),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 24, vertical: 12),
-                                  ),
-                                  child: const Text(
-                                    'Create Payslip',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.w600),
-                                  ),
+                                subtitle: Text(
+                                  '${DateFormat('MMM dd, yyyy').format(p.dateFrom!)} - ${DateFormat('MMM dd, yyyy').format(p.dateTo!)}',
+                                  style: TextStyle(color: AppColor.grey[600]),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              : Column(
-                  children: [
-                    SearchFilterBar(
-                      controller: _searchController,
-                      hintText: 'Search by employee name...',
-                      onChanged: () {
-                        if (!mounted) return;
-                        setState(() {
-                          _searchQuery = _searchController.text.toLowerCase();
-                        });
-                      },
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    ),
-                    Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: _fetchPayslips,
-                        child: Builder(
-                          builder: (context) {
-                            final filteredPayslips = _searchQuery.isEmpty
-                                ? _payslips
-                                : _payslips
-                                    .where((p) => p.employeeName
-                                        .toLowerCase()
-                                        .contains(_searchQuery))
-                                    .toList();
-                            if (filteredPayslips.isEmpty) {
-                              return const Center(
-                                child: 
-                                Text('No payslips found',style: TextStyle(color: Colors.grey),),
-                              );
-                            }
-                            return ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                              itemCount: filteredPayslips.length,
-                              itemBuilder: (context, index) {
-                                final p = filteredPayslips[index];
-                                return Card(
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                trailing: Chip(
+                                  label: Text(
+                                    _formatState(p.state),
+                                    style: const TextStyle(
+                                      color: AppColor.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                  elevation: 2,
-                                  child: ExpansionTile(
-                                    title: Text(
-                                      p.employeeName,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: Color.fromARGB(255, 7, 56, 80),
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      '${DateFormat('MMM dd, yyyy').format(p.dateFrom!)} - ${DateFormat('MMM dd, yyyy').format(p.dateTo!)}',
-                                      style: TextStyle(color: Colors.grey[600]),
-                                    ),
-                                    trailing: Chip(
-                                      label: Text(
-                                        p.state.toUpperCase(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      backgroundColor: p.state == 'done'
-                                          ? Colors.green
-                                          : p.state == 'draft'
-                                              ? Colors.orange
-                                              : Colors.blue,
-                                    ),
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            _buildDetailRow(
-                                                'Payslip Number', p.number),
-                                            _buildDetailRow('State', p.state),
-                                            _buildDetailRow(
-                                                'Note',
-                                                p.note.isEmpty
-                                                    ? 'N/A'
-                                                    : p.note),
-                                            _buildDetailRow(
-                                                'Paid', p.paid ? 'Yes' : 'No'),
-                                            _buildDetailRow('Credit Note',
-                                                p.creditNote ? 'Yes' : 'No'),
-                                            _buildDetailRow('Advance Deduction',
-                                                '₹${p.advanceDeductionAmount.toStringAsFixed(2)}'),
-                                            _buildDetailRow('Total Advance Pay',
-                                                '₹${p.totalAdvancePay.toStringAsFixed(2)}'),
-                                            _buildDetailRow(
-                                                'Remaining Advance Balance',
-                                                '₹${p.remainingAdvanceBalance.toStringAsFixed(2)}'),
-                                            const SizedBox(height: 16),
-                                            ElevatedButton(
-                                              onPressed: () async {
-                                                await _fetchPayslipDetails(
-                                                    p.id);
-                                                final detailedP =
-                                                    _detailedPayslips[p.id];
-                                                if (detailedP != null) {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          PayslipDetailsPage(
-                                                        payslip: detailedP,
-                                                        onCompute: (newLines) {
-                                                          if (!mounted) return;
-                                                          setState(() {
-                                                            _payslips =
-                                                                _payslips.map(
-                                                                    (payslip) {
-                                                              if (payslip.id ==
-                                                                  p.id) {
-                                                                return Payslip(
-                                                                  id: payslip
-                                                                      .id,
-                                                                  name: payslip
-                                                                      .name,
-                                                                  number: payslip
-                                                                      .number,
-                                                                  employeeName:
-                                                                      payslip
-                                                                          .employeeName,
-                                                                  state: payslip
-                                                                      .state,
-                                                                  dateFrom: payslip
-                                                                      .dateFrom,
-                                                                  dateTo: payslip
-                                                                      .dateTo,
-                                                                  employeeId:
-                                                                      payslip
-                                                                          .employeeId,
-                                                                  structId: payslip
-                                                                      .structId,
-                                                                  contractId:
-                                                                      payslip
-                                                                          .contractId,
-                                                                  companyId: payslip
-                                                                      .companyId,
-                                                                  paid: payslip
-                                                                      .paid,
-                                                                  note: payslip
-                                                                      .note,
-                                                                  creditNote:
-                                                                      payslip
-                                                                          .creditNote,
-                                                                  payslipRunId:
-                                                                      payslip
-                                                                          .payslipRunId,
-                                                                  workedDaysLineIds:
-                                                                      payslip
-                                                                          .workedDaysLineIds,
-                                                                  inputLineIds:
-                                                                      payslip
-                                                                          .inputLineIds,
-                                                                  lineIds:
-                                                                      newLines,
-                                                                  advanceDeductionAmount:
-                                                                      payslip
-                                                                          .advanceDeductionAmount,
-                                                                  totalAdvancePay:
-                                                                      payslip
-                                                                          .totalAdvancePay,
-                                                                  remainingAdvanceBalance:
-                                                                      payslip
-                                                                          .remainingAdvanceBalance,
-                                                                );
-                                                              }
-                                                              return payslip;
-                                                            }).toList();
-                                                            _detailedPayslips[
-                                                                p.id] = Payslip(
-                                                              id: p.id,
-                                                              name: p.name,
-                                                              number: p.number,
-                                                              employeeName: p
+                                  backgroundColor:
+                                      p.state.toLowerCase() == 'done'
+                                          ? AppColor.green
+                                          : p.state.toLowerCase() == 'draft'
+                                              ? AppColor.orange
+                                              : AppColor.blue,
+                                ),
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        _buildDetailRow(
+                                            'Payslip Number', p.number),
+                                        _buildDetailRow(
+                                            'State', _formatState(p.state)),
+                                        _buildDetailRow('Note',
+                                            p.note.isEmpty ? 'N/A' : p.note),
+                                        _buildDetailRow(
+                                            'Paid', p.paid ? 'Yes' : 'No'),
+                                        _buildDetailRow('Credit Note',
+                                            p.creditNote ? 'Yes' : 'No'),
+                                        _buildDetailRow('Advance Deduction',
+                                            'Rs ${p.advanceDeductionAmount.toStringAsFixed(2)}'),
+                                        _buildDetailRow('Total Advance Pay',
+                                            'Rs ${p.totalAdvancePay.toStringAsFixed(2)}'),
+                                        _buildDetailRow(
+                                            'Remaining Advance Balance',
+                                            'Rs ${p.remainingAdvanceBalance.toStringAsFixed(2)}'),
+                                        const SizedBox(height: 16),
+                                        ElevatedButton(
+                                          onPressed: () async {
+                                            await _fetchPayslipDetails(p.id);
+                                            final detailedP =
+                                                _detailedPayslips[p.id];
+                                            if (detailedP != null) {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      PayslipDetailsPage(
+                                                    payslip: detailedP,
+                                                    onCompute: (newLines) {
+                                                      if (!mounted) return;
+                                                      setState(() {
+                                                        _payslips = _payslips
+                                                            .map((payslip) {
+                                                          if (payslip.id ==
+                                                              p.id) {
+                                                            return Payslip(
+                                                              id: payslip.id,
+                                                              name:
+                                                                  payslip.name,
+                                                              number: payslip
+                                                                  .number,
+                                                              employeeName: payslip
                                                                   .employeeName,
-                                                              state: p.state,
-                                                              dateFrom:
-                                                                  p.dateFrom,
-                                                              dateTo: p.dateTo,
-                                                              employeeId:
-                                                                  p.employeeId,
-                                                              structId:
-                                                                  p.structId,
-                                                              contractId:
-                                                                  p.contractId,
-                                                              companyId:
-                                                                  p.companyId,
-                                                              paid: p.paid,
-                                                              note: p.note,
-                                                              creditNote:
-                                                                  p.creditNote,
-                                                              payslipRunId: p
+                                                              state:
+                                                                  payslip.state,
+                                                              dateFrom: payslip
+                                                                  .dateFrom,
+                                                              dateTo: payslip
+                                                                  .dateTo,
+                                                              employeeId: payslip
+                                                                  .employeeId,
+                                                              structId: payslip
+                                                                  .structId,
+                                                              contractId: payslip
+                                                                  .contractId,
+                                                              companyId: payslip
+                                                                  .companyId,
+                                                              paid:
+                                                                  payslip.paid,
+                                                              note:
+                                                                  payslip.note,
+                                                              creditNote: payslip
+                                                                  .creditNote,
+                                                              payslipRunId: payslip
                                                                   .payslipRunId,
                                                               workedDaysLineIds:
-                                                                  p.workedDaysLineIds,
-                                                              inputLineIds: p
+                                                                  payslip
+                                                                      .workedDaysLineIds,
+                                                              inputLineIds: payslip
                                                                   .inputLineIds,
                                                               lineIds: newLines,
                                                               advanceDeductionAmount:
-                                                                  p.advanceDeductionAmount,
-                                                              totalAdvancePay: p
-                                                                  .totalAdvancePay,
+                                                                  payslip
+                                                                      .advanceDeductionAmount,
+                                                              totalAdvancePay:
+                                                                  payslip
+                                                                      .totalAdvancePay,
                                                               remainingAdvanceBalance:
-                                                                  p.remainingAdvanceBalance,
+                                                                  payslip
+                                                                      .remainingAdvanceBalance,
                                                             );
-                                                          });
-                                                          developer.log(
-                                                            'Updated payslip lines for ID: ${p.id}, New lines: ${newLines.length}',
-                                                            name: 'PayslipPage',
-                                                          );
-                                                        },
-                                                        onConfirm: () {
-                                                          if (!mounted) return;
-                                                          setState(() {
-                                                            _payslips = _payslips
-                                                                .map((payslip) => payslip.id == p.id
+                                                          }
+                                                          return payslip;
+                                                        }).toList();
+                                                        _detailedPayslips[
+                                                            p.id] = Payslip(
+                                                          id: p.id,
+                                                          name: p.name,
+                                                          number: p.number,
+                                                          employeeName:
+                                                              p.employeeName,
+                                                          state: p.state,
+                                                          dateFrom: p.dateFrom,
+                                                          dateTo: p.dateTo,
+                                                          employeeId:
+                                                              p.employeeId,
+                                                          structId: p.structId,
+                                                          contractId:
+                                                              p.contractId,
+                                                          companyId:
+                                                              p.companyId,
+                                                          paid: p.paid,
+                                                          note: p.note,
+                                                          creditNote:
+                                                              p.creditNote,
+                                                          payslipRunId:
+                                                              p.payslipRunId,
+                                                          workedDaysLineIds: p
+                                                              .workedDaysLineIds,
+                                                          inputLineIds:
+                                                              p.inputLineIds,
+                                                          lineIds: newLines,
+                                                          advanceDeductionAmount:
+                                                              p.advanceDeductionAmount,
+                                                          totalAdvancePay:
+                                                              p.totalAdvancePay,
+                                                          remainingAdvanceBalance:
+                                                              p.remainingAdvanceBalance,
+                                                        );
+                                                      });
+                                                      developer.log(
+                                                        'Updated payslip lines for ID: ${p.id}, New lines: ${newLines.length}',
+                                                        name: 'PayslipPage',
+                                                      );
+                                                    },
+                                                    onConfirm: () {
+                                                      if (!mounted) return;
+                                                      setState(() {
+                                                        _payslips = _payslips
+                                                            .map((payslip) =>
+                                                                payslip.id ==
+                                                                        p.id
                                                                     ? Payslip(
                                                                         id: payslip
                                                                             .id,
@@ -957,88 +398,93 @@ class _PayslipPageState extends State<PayslipPage> {
                                                                             payslip.remainingAdvanceBalance,
                                                                       )
                                                                     : payslip)
-                                                                .toList();
-                                                            _detailedPayslips[
-                                                                p.id] = Payslip(
-                                                              id: p.id,
-                                                              name: p.name,
-                                                              number: p.number,
-                                                              employeeName: p
-                                                                  .employeeName,
-                                                              state: 'Done',
-                                                              dateFrom:
-                                                                  p.dateFrom,
-                                                              dateTo: p.dateTo,
-                                                              employeeId:
-                                                                  p.employeeId,
-                                                              structId:
-                                                                  p.structId,
-                                                              contractId:
-                                                                  p.contractId,
-                                                              companyId:
-                                                                  p.companyId,
-                                                              paid: p.paid,
-                                                              note: p.note,
-                                                              creditNote:
-                                                                  p.creditNote,
-                                                              payslipRunId: p
-                                                                  .payslipRunId,
-                                                              workedDaysLineIds:
-                                                                  p.workedDaysLineIds,
-                                                              inputLineIds: p
-                                                                  .inputLineIds,
-                                                              lineIds:
-                                                                  p.lineIds,
-                                                              advanceDeductionAmount:
-                                                                  p.advanceDeductionAmount,
-                                                              totalAdvancePay: p
-                                                                  .totalAdvancePay,
-                                                              remainingAdvanceBalance:
-                                                                  p.remainingAdvanceBalance,
-                                                            );
-                                                          });
-                                                          developer.log(
-                                                            'Confirmed payslip: ID=${p.id}, State=Done',
-                                                            name: 'PayslipPage',
-                                                          );
-                                                        },
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    const Color.fromARGB(
-                                                        255, 7, 56, 80),
-                                                foregroundColor: Colors.white,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
+                                                            .toList();
+                                                        _detailedPayslips[
+                                                            p.id] = Payslip(
+                                                          id: p.id,
+                                                          name: p.name,
+                                                          number: p.number,
+                                                          employeeName:
+                                                              p.employeeName,
+                                                          state: 'Done',
+                                                          dateFrom: p.dateFrom,
+                                                          dateTo: p.dateTo,
+                                                          employeeId:
+                                                              p.employeeId,
+                                                          structId: p.structId,
+                                                          contractId:
+                                                              p.contractId,
+                                                          companyId:
+                                                              p.companyId,
+                                                          paid: p.paid,
+                                                          note: p.note,
+                                                          creditNote:
+                                                              p.creditNote,
+                                                          payslipRunId:
+                                                              p.payslipRunId,
+                                                          workedDaysLineIds: p
+                                                              .workedDaysLineIds,
+                                                          inputLineIds:
+                                                              p.inputLineIds,
+                                                          lineIds: p.lineIds,
+                                                          advanceDeductionAmount:
+                                                              p.advanceDeductionAmount,
+                                                          totalAdvancePay:
+                                                              p.totalAdvancePay,
+                                                          remainingAdvanceBalance:
+                                                              p.remainingAdvanceBalance,
+                                                        );
+                                                      });
+                                                      developer.log(
+                                                        'Confirmed payslip: ID=${p.id}, State=Done',
+                                                        name: 'PayslipPage',
+                                                      );
+                                                    },
+                                                  ),
                                                 ),
-                                              ),
-                                              child: const Text('View Details'),
+                                              );
+                                            }
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppColor.primary,
+                                            foregroundColor: AppColor.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
-                                          ],
+                                          ),
+                                          child: const Text('View Details'),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                );
-                              },
+                                ],
+                              ),
                             );
                           },
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  ],
+                  ),
                 ),
+              ],
+            ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() => _isFormOpen = true);
+        onPressed: () async {
           developer.log('Opening payslip creation form', name: 'PayslipPage');
+          final createdPayslip = await Navigator.push<Payslip>(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreatePayslipPage(),
+            ),
+          );
+          if (!mounted || createdPayslip == null) return;
+          setState(() {
+            _payslips.add(createdPayslip);
+          });
+          _showSnackBar('Payslip created successfully', color: AppColor.green);
         },
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
+        backgroundColor: AppColor.primary,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: const Icon(Icons.add, size: 28),
       ),
@@ -1083,6 +529,12 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
     _fetchPayslipDetails();
   }
 
+  String _formatState(String state) {
+    if (state.isEmpty) return state;
+    final lower = state.toLowerCase();
+    return lower[0].toUpperCase() + lower.substring(1);
+  }
+
   Future<void> _fetchPayslipDetails() async {
     if (!mounted) return;
     setState(() {
@@ -1096,7 +548,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
     try {
       final details =
           await _payslipService.fetchPayslipWorkedDaysInputs(widget.payslip.id);
-          if (!mounted) return;
+      if (!mounted) return;
       setState(() {
         _workedDays = details['worked_days'];
         _inputs = details['inputs'];
@@ -1109,7 +561,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
           name: 'PayslipDetailsPage');
     } catch (e) {
       if (!mounted) return;
-      
+
       setState(() {
         _isLoadingDetails = false;
       });
@@ -1120,7 +572,8 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
   }
 
   Future<void> _computeSheet() async {
-    if (_currentPayslip.state != 'draft' && _currentPayslip.state != 'verify') {
+    final currentState = _currentPayslip.state.toLowerCase();
+    if (currentState != 'draft' && currentState != 'verify') {
       developer.log(
         'Cannot compute payslip: ID=${_currentPayslip.id}, State=${_currentPayslip.state}',
         name: 'PayslipDetailsPage',
@@ -1128,11 +581,11 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
       // _showSnackBar('Payslip must be in Draft or Waiting state to compute');
       _showSnackBar(
         'Payslip is already computed. You can proceed to confirm it.',
-        color: Colors.orange,
+        color: AppColor.orange,
       );
       return;
     }
-     if (!mounted) return;
+    if (!mounted) return;
     setState(() {
       _isComputing = true;
     });
@@ -1142,7 +595,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
     try {
       final computedLines =
           await _payslipService.computePayslipSheet(_currentPayslip.id);
-          if (!mounted) return;
+      if (!mounted) return;
       setState(() {
         _currentPayslip = _currentPayslip.copyWith(lineIds: computedLines);
         _hasComputed = true;
@@ -1152,7 +605,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
         'Payslip sheet computed successfully for ID: ${_currentPayslip.id}, Lines: ${computedLines.length}',
         name: 'PayslipDetailsPage',
       );
-      _showSnackBar('Payslip computed successfully', color: Colors.green);
+      _showSnackBar('Payslip computed successfully', color: AppColor.green);
     } catch (e) {
       developer.log('Error computing payslip: $e',
           name: 'PayslipDetailsPage', error: e);
@@ -1166,14 +619,15 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
   }
 
   Future<void> _confirmPayslip() async {
-    if (_currentPayslip.state != 'draft' && _currentPayslip.state != 'verify') {
+    final currentState = _currentPayslip.state.toLowerCase();
+    if (currentState != 'draft' && currentState != 'verify') {
       developer.log(
         'Cannot confirm payslip: ID=${_currentPayslip.id}, State=${_currentPayslip.state}',
         name: 'PayslipDetailsPage',
       );
       _showSnackBar(
         'Payslip is already confirmed.',
-        color: Colors.orange,
+        color: AppColor.orange,
       );
       return;
     }
@@ -1188,10 +642,10 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
       await _payslipService.confirmPayslip(_currentPayslip.id);
       if (!mounted) return;
       setState(() {
-        _currentPayslip = _currentPayslip.copyWith(state: 'done');
+        _currentPayslip = _currentPayslip.copyWith(state: 'Done');
       });
       widget.onConfirm();
-      _showSnackBar('Payslip confirmed successfully', color: Colors.green);
+      _showSnackBar('Payslip confirmed successfully', color: AppColor.green);
       developer.log(
           'Payslip confirmed successfully for ID: ${_currentPayslip.id}',
           name: 'PayslipDetailsPage');
@@ -1202,9 +656,9 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
         final employeeNameEnd = e.toString().indexOf('for', employeeNameStart);
         final employeeName =
             e.toString().substring(employeeNameStart, employeeNameEnd).trim();
-            if (!mounted) return;
+        if (!mounted) return;
         setState(() {
-          _currentPayslip = _currentPayslip.copyWith(state: 'done');
+          _currentPayslip = _currentPayslip.copyWith(state: 'Done');
         });
         widget.onConfirm();
         developer.log(
@@ -1212,7 +666,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
           name: 'PayslipDetailsPage',
         );
         _showSnackBar('The payslip for $employeeName is already confirmed',
-            color: Colors.orange);
+            color: AppColor.orange);
       } else {
         developer.log('Error confirming payslip: $e',
             name: 'PayslipDetailsPage', error: e);
@@ -1226,9 +680,9 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
     }
   }
 
-  void _showSnackBar(String msg, {Color color = Colors.red}) {
+  void _showSnackBar(String msg, {Color? color}) {
     developer.log('Showing SnackBar: $msg', name: 'PayslipDetailsPage');
-    showStatusSnackBar(msg, color: color);
+    showStatusSnackBar(msg, color: color ?? AppColor.red);
   }
 
   Widget _buildDetailRow(String label, String value) {
@@ -1241,7 +695,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
             child: Text(
               label,
               style: const TextStyle(
-                  color: Colors.grey, fontWeight: FontWeight.w500),
+                  color: AppColor.grey, fontWeight: FontWeight.w500),
             ),
           ),
           const SizedBox(width: 12),
@@ -1285,7 +739,6 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
       }
     }
 
-    final primaryColor = const Color.fromARGB(255, 7, 56, 80);
     List<Widget> widgets = [];
 
     // Normal work card, with overtime below if exists
@@ -1301,7 +754,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
           displayName,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: primaryColor,
+                color: AppColor.primary,
               ),
         ),
         const SizedBox(height: 8),
@@ -1312,7 +765,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
             children: [
               Icon(
                 Icons.calendar_today_outlined,
-                color: Colors.grey[600],
+                color: AppColor.grey[600],
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -1320,7 +773,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                 'Days: $days',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey[700],
+                  color: AppColor.grey[700],
                 ),
               ),
             ],
@@ -1331,7 +784,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
           children: [
             Icon(
               Icons.access_time_outlined,
-              color: Colors.grey[600],
+              color: AppColor.grey[600],
               size: 16,
             ),
             const SizedBox(width: 8),
@@ -1339,7 +792,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
               'Actual Hours: $display',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[700],
+                color: AppColor.grey[700],
               ),
             ),
           ],
@@ -1356,7 +809,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
               children: [
                 Icon(
                   Icons.flash_on_outlined,
-                  color: Colors.green[600],
+                  color: AppColor.green[600],
                   size: 16,
                 ),
                 const SizedBox(width: 8),
@@ -1364,7 +817,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                   'Overtime Hours: $overtimeDisplay',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: Colors.green[700],
+                    color: AppColor.green[700],
                   ),
                 ),
               ],
@@ -1378,18 +831,18 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.blue[50],
+            color: AppColor.blue[50],
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: AppColor.black.withOpacity(0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
             // border: Border.left(
             //   BorderSide(
-            //     color: primaryColor.withOpacity(0.3),
+            //     color: AppColor.primary.withOpacity(0.3),
             //     width: 4,
             //   ),
             // ),
@@ -1410,18 +863,18 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.green[50],
+            color: AppColor.green[50],
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: AppColor.black.withOpacity(0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
             // border: Border.left(
             //   BorderSide(
-            //     color: Colors.green.withOpacity(0.3),
+            //     color: AppColor.green.withOpacity(0.3),
             //     width: 4,
             //   ),
             // ),
@@ -1433,7 +886,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                 name,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: Colors.green,
+                      color: AppColor.green,
                     ),
               ),
               const SizedBox(height: 8),
@@ -1441,7 +894,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                 children: [
                   Icon(
                     Icons.flash_on_outlined,
-                    color: Colors.green[600],
+                    color: AppColor.green[600],
                     size: 16,
                   ),
                   const SizedBox(width: 8),
@@ -1449,7 +902,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                     'Overtime Hours: $display',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
-                      color: Colors.green[700],
+                      color: AppColor.green[700],
                     ),
                   ),
                 ],
@@ -1476,18 +929,18 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.orange[50],
+              color: AppColor.orange[50],
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: AppColor.black.withOpacity(0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
               // border: Border.left(
               //   BorderSide(
-              //     color: Colors.orange.withOpacity(0.3),
+              //     color: AppColor.orange.withOpacity(0.3),
               //     width: 4,
               //   ),
               // ),
@@ -1499,7 +952,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                   name,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Colors.orange,
+                        color: AppColor.orange,
                       ),
                 ),
                 const SizedBox(height: 8),
@@ -1509,7 +962,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                     children: [
                       Icon(
                         Icons.calendar_today_outlined,
-                        color: Colors.grey[600],
+                        color: AppColor.grey[600],
                         size: 16,
                       ),
                       const SizedBox(width: 8),
@@ -1517,7 +970,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                         'Days: $days',
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
-                          color: Colors.grey[700],
+                          color: AppColor.grey[700],
                         ),
                       ),
                     ],
@@ -1527,7 +980,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                   children: [
                     // Icon(
                     //   Icons.block_outlined,
-                    //   color: Colors.orange[600],
+                    //   color: AppColor.orange[600],
                     //   size: 16,
                     // ),
                     // const SizedBox(width: 8),
@@ -1535,7 +988,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                     //   'Unworked Hours: $display',
                     //   style: TextStyle(
                     //     fontWeight: FontWeight.w500,
-                    //     color: Colors.orange[700],
+                    //     color: AppColor.orange[700],
                     //   ),
                     // ),
                   ],
@@ -1555,7 +1008,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
           'Worked Days',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: const Color.fromARGB(255, 7, 56, 80),
+                color: AppColor.primary,
               ),
         ),
         const SizedBox(height: 12),
@@ -1581,7 +1034,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
           'Inputs',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: const Color.fromARGB(255, 7, 56, 80),
+                color: AppColor.primary,
               ),
         ),
         const SizedBox(height: 8),
@@ -1608,7 +1061,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                               'Code: ${input['code'] ?? 'N/A'}',
                               softWrap: true,
                               style: TextStyle(
-                                  color: Colors.grey[600], fontSize: 12),
+                                  color: AppColor.grey[600], fontSize: 12),
                             ),
                           ],
                         ),
@@ -1619,7 +1072,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                         textAlign: TextAlign.right,
                         style: const TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: Color.fromARGB(255, 7, 56, 80)),
+                            color: AppColor.primary),
                       ),
                     ],
                   ),
@@ -1639,8 +1092,8 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
           overflow: TextOverflow.ellipsis,
         ),
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColor.primary,
+        foregroundColor: AppColor.white,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -1657,7 +1110,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
               children: [
                 // Basic payslip information
                 _buildDetailRow('Payslip Number', _currentPayslip.number),
-                _buildDetailRow('State', _currentPayslip.state),
+                _buildDetailRow('State', _formatState(_currentPayslip.state)),
                 _buildDetailRow(
                     'Note',
                     _currentPayslip.note.isEmpty
@@ -1686,7 +1139,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                     'Salary Lines',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: const Color.fromARGB(255, 7, 56, 80),
+                          color: AppColor.primary,
                         ),
                   ),
                   const SizedBox(height: 8),
@@ -1730,8 +1183,8 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                 //     ElevatedButton(
                 //       onPressed: _isComputing ? null : _computeSheet,
                 //       style: ElevatedButton.styleFrom(
-                //         backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-                //         foregroundColor: Colors.white,
+                //         backgroundColor: AppColor.primary,
+                //         foregroundColor: AppColor.white,
                 //         shape: RoundedRectangleBorder(
                 //           borderRadius: BorderRadius.circular(8),
                 //         ),
@@ -1743,7 +1196,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                 //               width: 24,
                 //               height: 24,
                 //               child: CircularProgressIndicator(
-                //                 color: Colors.white,
+                //                 color: AppColor.white,
                 //                 strokeWidth: 2,
                 //               ),
                 //             )
@@ -1755,8 +1208,8 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                 //     ElevatedButton(
                 //       onPressed: _isConfirming ? null : _confirmPayslip,
                 //       style: ElevatedButton.styleFrom(
-                //         backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-                //         foregroundColor: Colors.white,
+                //         backgroundColor: AppColor.primary,
+                //         foregroundColor: AppColor.white,
                 //         shape: RoundedRectangleBorder(
                 //           borderRadius: BorderRadius.circular(8),
                 //         ),
@@ -1768,7 +1221,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                 //               width: 24,
                 //               height: 24,
                 //               child: CircularProgressIndicator(
-                //                 color: Colors.white,
+                //                 color: AppColor.white,
                 //                 strokeWidth: 2,
                 //               ),
                 //             )
@@ -1785,8 +1238,8 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                     ElevatedButton(
                       onPressed: _isComputing ? null : _computeSheet,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColor.primary,
+                        foregroundColor: AppColor.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -1796,7 +1249,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                               width: 18,
                               height: 18,
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: AppColor.white,
                                 strokeWidth: 2,
                               ),
                             )
@@ -1807,8 +1260,8 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                       ElevatedButton(
                         onPressed: _isConfirming ? null : _confirmPayslip,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColor.green,
+                          foregroundColor: AppColor.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -1818,7 +1271,7 @@ class _PayslipDetailsPageState extends State<PayslipDetailsPage> {
                                 width: 18,
                                 height: 18,
                                 child: CircularProgressIndicator(
-                                  color: Colors.white,
+                                  color: AppColor.white,
                                   strokeWidth: 2,
                                 ),
                               )

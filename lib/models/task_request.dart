@@ -46,12 +46,10 @@ class TaskRequest {
 
     return TaskRequest(
       taskId: json['task_id']?.toInt() ?? 0,
-      employeeId:
-          json['employee_id']?.toString() ??
+      employeeId: json['employee_id']?.toString() ??
           json['assigned_to']?.toString() ??
           '0',
-      assignBy:
-          json['assign_by']?.toString() ??
+      assignBy: json['assign_by']?.toString() ??
           json['assigned_by']?.toString() ??
           '0',
       name: json['task_name']?.toString() ?? json['name']?.toString() ?? '',
@@ -60,11 +58,9 @@ class TaskRequest {
       deadline: parseDate(json['deadline']) ?? '',
       description: json['description']?.toString(),
       state: json['state']?.toString(),
-      assignedToName:
-          json['employee_name']?.toString() ??
+      assignedToName: json['employee_name']?.toString() ??
           json['assigned_to_name']?.toString(),
-      assignedByName:
-          json['assigned_by']?.toString() ??
+      assignedByName: json['assigned_by']?.toString() ??
           json['assigned_by_name']?.toString(),
     );
   }

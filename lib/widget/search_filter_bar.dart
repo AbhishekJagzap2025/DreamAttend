@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 
 class SearchFilterBar extends StatelessWidget {
   final TextEditingController controller;
@@ -24,13 +25,13 @@ class SearchFilterBar extends StatelessWidget {
     this.showFilter = false,
     this.onFilterPressed,
     this.padding = const EdgeInsets.all(16),
-    this.iconColor = const Color(0xFF073850),
-    this.borderSide = const BorderSide(color: Colors.black),
-    this.enabledBorderSide = const BorderSide(color: Colors.black),
-    this.focusedBorderSide = const BorderSide(color: Colors.black, width: 2),
+    this.iconColor = AppColor.primary,
+    this.borderSide = const BorderSide(color: AppColor.black),
+    this.enabledBorderSide = const BorderSide(color: AppColor.black),
+    this.focusedBorderSide = const BorderSide(color: AppColor.black, width: 2),
     this.contentPadding,
     this.filled = true,
-    this.fillColor = Colors.white,
+    this.fillColor = AppColor.white,
     this.extraSuffixActions = const [],
   });
 
@@ -61,10 +62,9 @@ class SearchFilterBar extends StatelessWidget {
 
     return Padding(
       padding: padding,
-      child: 
-      // TextField
-      TextFormField 
-      (
+      child:
+          // TextField
+          TextFormField(
         controller: controller,
         onChanged: (_) => onChanged(),
         decoration: InputDecoration(

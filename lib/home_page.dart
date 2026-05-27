@@ -11,19 +11,7 @@ import 'holidays.dart';
 import 'user_profile.dart';
 import 'employee_page.dart';
 import 'utils/app_layout.dart';
-
-/// Professional Color Palette
-class AppColors {
-  static const Color primaryBlue =
-      Color(0xFF0B4A5E); // Darker, more professional blue
-  static const Color accentTeal = Color(0xFF00897B); // Modern teal accent
-  static const Color lightBackground = Color(0xFFF8FAFC); // Softer background
-  static const Color cardBackground = Colors.white;
-  static const Color textDark = Color(0xFF2D3748); // Darker text
-  static const Color textLight = Color(0xFF718096); // Lighter text
-  static const Color successGreen = Color(0xFF38A169);
-  static const Color warningOrange = Color(0xFFED8936);
-}
+import 'Constant/app_color.dart';
 
 class HomePage extends StatefulWidget {
   final String name;
@@ -119,7 +107,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void _navigateToPage(BuildContext context, Widget page) async {
     try {
       if (await _isSessionValid()) {
-         if (!mounted) return;
+        if (!mounted) return;
         Navigator.push(
           context,
           PageRouteBuilder(
@@ -141,12 +129,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ),
         );
       } else {
-        _showSnackBar('Session expired. Please log in again.', Colors.red);
+        _showSnackBar('Session expired. Please log in again.', AppColor.red);
         if (!mounted) return;
-        Navigator.pushNamedAndRemoveUntil(context,'/login',(route) => false,);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/login',
+          (route) => false,
+        );
       }
     } catch (e) {
-      _showSnackBar('Something went wrong. Please try again.', Colors.red);
+      _showSnackBar('Something went wrong. Please try again.', AppColor.red);
     }
   }
 
@@ -188,9 +180,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           content: Text(
             'Update available! New: v$storeVersion (Current: v$installedVersion)',
             style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w500),
+                color: AppColor.white, fontWeight: FontWeight.w500),
           ),
-          leading: const Icon(Icons.system_update_alt, color: Colors.white),
+          leading: const Icon(Icons.system_update_alt, color: AppColor.white),
           actions: [
             TextButton(
               onPressed: () {
@@ -200,7 +192,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               child: const Text(
                 'UPDATE',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColor.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -246,7 +238,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       floating: false,
       pinned: true,
       backgroundColor: AppColors.primaryBlue,
-      foregroundColor: Colors.white,
+      foregroundColor: AppColor.white,
       elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
         title: Row(
@@ -254,12 +246,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: AppColor.white.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.dashboard_outlined,
-                color: Colors.white,
+                color: AppColor.white,
                 size: 16,
               ),
             ),
@@ -272,7 +264,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
                 letterSpacing: 0.3,
-                color: Colors.white,
+                color: AppColor.white,
               ),
             ),
           ],
@@ -300,7 +292,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: AppColor.white.withOpacity(0.05),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -312,7 +304,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.03),
+                    color: AppColor.white.withOpacity(0.03),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -325,32 +317,32 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         Container(
           margin: const EdgeInsets.only(right: 16),
           child: Material(
-            color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                // onTap: _openUserProfile,
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    _openUserProfile();
-                  },
-                child: Container(
-                  padding: const EdgeInsets.all(12),
+            color: AppColor.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              // onTap: _openUserProfile,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                _openUserProfile();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.white.withOpacity(0.2),
-                      Colors.white.withOpacity(0.1),
+                      AppColor.white.withOpacity(0.2),
+                      AppColor.white.withOpacity(0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
+                    color: AppColor.white.withOpacity(0.3),
                     width: 1,
                   ),
                 ),
                 child: const Icon(
                   Icons.person_outline_rounded,
-                  color: Colors.white,
+                  color: AppColor.white,
                   size: 20,
                 ),
               ),
@@ -370,7 +362,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           end: Offset.zero,
         ).animate(_headerAnimation),
         child: Material(
-          color: Colors.transparent,
+          color: AppColor.transparent,
           child: InkWell(
             onTap: _openUserProfile,
             borderRadius: BorderRadius.circular(24),
@@ -378,81 +370,76 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-  color: Colors.white, // ✅ clean replacement
-  borderRadius: BorderRadius.circular(24),
-  border: Border.all(
-    color: AppColors.accentTeal.withOpacity(0.1),
-    width: 1.5,
-  ),
-  boxShadow: [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.06),
-      blurRadius: 20,
-      offset: const Offset(0, 10),
-    ),
-    BoxShadow(
-      color: Colors.black.withOpacity(0.03),
-      blurRadius: 10,
-      offset: const Offset(0, 2),
-    ),
-  ],
-),
+                color: AppColor.white, // ✅ clean replacement
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: AppColors.accentTeal.withOpacity(0.1),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.black.withOpacity(0.06),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                  BoxShadow(
+                    color: AppColor.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
                   CircleAvatar(
-  radius: 32,
-  backgroundColor: AppColors.accentTeal,
-  child: Text(
-    widget.name.isNotEmpty
-        ? widget.name[0].toUpperCase()
-        : '?',
-    style: const TextStyle(
-      color: Colors.white,
-      fontSize: 22,
-      fontWeight: FontWeight.w600,
-    ),
-  ),
-),
-             
-                  
+                    radius: 32,
+                    backgroundColor: AppColors.accentTeal,
+                    child: Text(
+                      widget.name.isNotEmpty
+                          ? widget.name[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                        color: AppColor.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 20),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    Text(
-      '${_getTimeBasedGreeting()},',
-      style: const TextStyle(
-        fontSize: 14,
-        color: AppColors.textLight,
-        fontWeight: FontWeight.w500,
-      ),
-    ),
-    const SizedBox(height: 4),
-
-    Text(
-      widget.name,
-      style: const TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textDark,
-      ),
-    ),
-
-    const SizedBox(height: 2),
-
-    Text(
-      widget.jobTitle,
-      style: const TextStyle(
-        fontSize: 13,
-        color: AppColors.textLight,
-      ),
-    ),
-  ],
-)
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${_getTimeBasedGreeting()},',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textLight,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.name,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.jobTitle,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textLight,
+                              ),
+                            ),
+                          ],
+                        )
                       ],
                     ),
                   ),
@@ -484,11 +471,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         margin: const EdgeInsets.symmetric(horizontal: 20),
         child: const Row(
           children: [
-           
             SizedBox(width: 12),
-        
             SizedBox(width: 12),
-            
           ],
         ),
       ),
@@ -504,11 +488,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: AppColor.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -573,8 +557,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           width: 4,
                           height: 24,
                           decoration: BoxDecoration(
-                            
-                            // color: Colors.white.withOpacity(0.95),
+                            // color: AppColor.white.withOpacity(0.95),
                             color: AppColors.accentTeal,
                             borderRadius: BorderRadius.circular(2),
                           ),
@@ -714,7 +697,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           Icons.payments_outlined,
           'Payroll',
           '',
-          const Color(0xFF8B5CF6),
+          AppColor.purple,
           const PayrollPage(),
         ),
       );
@@ -728,7 +711,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           Icons.calendar_today_outlined,
           'Calendar',
           '',
-          const Color(0xFFEC4899),
+          AppColor.pink,
           const Holidays(),
         ),
       );
@@ -747,14 +730,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   ) {
     return Container(
       decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Colors.white,
-              ],
-            ),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColor.white,
+            AppColor.white,
+          ],
+        ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: color.withOpacity(0.15),
@@ -768,23 +751,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: AppColor.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Material(
-        color: Colors.transparent,
+        color: AppColor.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
           splashColor: color.withOpacity(0.1),
           highlightColor: color.withOpacity(0.05),
           // onTap: () => _navigateToPage(context, page),
           onTap: () {
-  HapticFeedback.lightImpact();
-  _navigateToPage(context, page);
-},
+            HapticFeedback.lightImpact();
+            _navigateToPage(context, page);
+          },
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -817,7 +800,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       Center(
                         child: Icon(
                           icon,
-                          color: Colors.white,
+                          color: AppColor.white,
                           size: 28,
                         ),
                       ),
@@ -828,7 +811,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.3),
+                            color: AppColor.white.withOpacity(0.3),
                             shape: BoxShape.circle,
                           ),
                         ),

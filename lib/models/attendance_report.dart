@@ -1,4 +1,3 @@
-
 class AttendanceReport {
   final int employeeId;
   final String employeeName;

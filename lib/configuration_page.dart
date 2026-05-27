@@ -1,4 +1,5 @@
 // import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 // import '/models/salary_rule.dart';
 // import '/services/configuration_service.dart';
 // import 'salary_structure_page.dart';
@@ -19,8 +20,8 @@
 //     return Scaffold(
 //       appBar: AppBar(
 //         title: const Text('Configuration'),
-//         backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-//         foregroundColor: Colors.white,
+//         backgroundColor: AppColor.primary,
+//         foregroundColor: AppColor.white,
 //         elevation: 4,
 //         centerTitle: true,
 //       ),
@@ -34,7 +35,7 @@
 //               style: TextStyle(
 //                 fontSize: 24,
 //                 fontWeight: FontWeight.bold,
-//                 color: Color.fromARGB(255, 7, 56, 80),
+//                 color: AppColor.primary,
 //               ),
 //               textAlign: TextAlign.center,
 //             ),
@@ -100,13 +101,13 @@
 //               Container(
 //                 padding: const EdgeInsets.all(12),
 //                 decoration: BoxDecoration(
-//                   color: const Color.fromARGB(255, 7, 56, 80).withOpacity(0.1),
+//                   color: AppColor.primary.withOpacity(0.1),
 //                   shape: BoxShape.circle,
 //                 ),
 //                 child: Icon(
 //                   icon,
 //                   size: 32,
-//                   color: const Color.fromARGB(255, 7, 56, 80),
+//                   color: AppColor.primary,
 //                 ),
 //               ),
 //               const SizedBox(width: 16),
@@ -119,7 +120,7 @@
 //                       style: const TextStyle(
 //                         fontSize: 18,
 //                         fontWeight: FontWeight.bold,
-//                         color: Color.fromARGB(255, 7, 56, 80),
+//                         color: AppColor.primary,
 //                       ),
 //                     ),
 //                     const SizedBox(height: 4),
@@ -127,7 +128,7 @@
 //                       description,
 //                       style: TextStyle(
 //                         fontSize: 14,
-//                         color: Colors.grey[700],
+//                         color: AppColor.grey[700],
 //                       ),
 //                     ),
 //                   ],
@@ -136,7 +137,7 @@
 //               const Icon(
 //                 Icons.chevron_right,
 //                 size: 32,
-//                 color: Color.fromARGB(255, 7, 56, 80),
+//                 color: AppColor.primary,
 //               ),
 //             ],
 //           ),
@@ -188,8 +189,8 @@
 //     return Scaffold(
 //       appBar: AppBar(
 //         title: const Text('Salary Rules'),
-//         backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-//         foregroundColor: Colors.white,
+//         backgroundColor: AppColor.primary,
+//         foregroundColor: AppColor.white,
 //         elevation: 4,
 //         centerTitle: true,
 //       ),
@@ -205,7 +206,7 @@
 //                   padding: EdgeInsets.all(16.0),
 //                   child: CircularProgressIndicator(
 //                     valueColor: AlwaysStoppedAnimation<Color>(
-//                       Color.fromARGB(255, 7, 56, 80),
+//                       AppColor.primary,
 //                     ),
 //                   ),
 //                 ),
@@ -218,7 +219,7 @@
 //                   style: TextStyle(
 //                     fontSize: 20,
 //                     fontWeight: FontWeight.bold,
-//                     color: Color.fromARGB(255, 7, 56, 80),
+//                     color: AppColor.primary,
 //                   ),
 //                 ),
 //               ),
@@ -228,7 +229,7 @@
 //                   separatorBuilder: (context, index) => const Divider(
 //                     height: 1,
 //                     thickness: 1,
-//                     color: Colors.grey,
+//                     color: AppColor.grey,
 //                   ),
 //                   itemBuilder: (context, index) {
 //                     final rule = _salaryRules[index];
@@ -268,8 +269,8 @@
 //                         ),
 //                         decoration: BoxDecoration(
 //                           color: rule.active
-//                               ? Colors.green.withOpacity(0.1)
-//                               : Colors.red.withOpacity(0.1),
+//                               ? AppColor.green.withOpacity(0.1)
+//                               : AppColor.red.withOpacity(0.1),
 //                           borderRadius: BorderRadius.circular(12),
 //                         ),
 //                         child: Row(
@@ -277,14 +278,14 @@
 //                           children: [
 //                             Icon(
 //                               rule.active ? Icons.check_circle : Icons.cancel,
-//                               color: rule.active ? Colors.green : Colors.red,
+//                               color: rule.active ? AppColor.green : AppColor.red,
 //                               size: 16,
 //                             ),
 //                             const SizedBox(width: 4),
 //                             Text(
 //                               rule.active ? 'Active' : 'Inactive',
 //                               style: TextStyle(
-//                                 color: rule.active ? Colors.green : Colors.red,
+//                                 color: rule.active ? AppColor.green : AppColor.red,
 //                                 fontSize: 12,
 //                               ),
 //                             ),
@@ -304,14 +305,14 @@
 //                     Icon(
 //                       Icons.rule,
 //                       size: 64,
-//                       color: Colors.grey[400],
+//                       color: AppColor.grey[400],
 //                     ),
 //                     const SizedBox(height: 16),
 //                     const Text(
 //                       'No salary rules found',
 //                       style: TextStyle(
 //                         fontSize: 18,
-//                         color: Colors.grey,
+//                         color: AppColor.grey,
 //                       ),
 //                     ),
 //                   ],

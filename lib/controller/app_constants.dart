@@ -36,13 +36,12 @@ class AppConstants {
       '/api/update/task/in_progress';
   static const String updateTaskDoneEndpoint = '/api/update/task/done';
 
- 
-
   // Contract list
   static const String getContractsEndpoint = '/api/hr_contracts/tree';
   static const String getContractDetailsEndpoint = '/api/hr_contracts/form';
   static const String createContractEndpoint = '/api/hr_contract/create';
-  static const String setContractRunningEndpoint ='/api/hr_contract/set_running';
+  static const String setContractRunningEndpoint =
+      '/api/hr_contract/set_running';
 
   //payslip list
   static const String getPayslipsEndpoint = '/api/hr_payslips/tree';
@@ -61,15 +60,17 @@ class AppConstants {
   static const String registerEndpoint = '/signup';
 
   // Employee Attendance Report Api
-  static const String employeeAttendanceReportEndpoint ='/api/employee_attendance_report';
+  static const String employeeAttendanceReportEndpoint =
+      '/api/employee_attendance_report';
 
   // Advance Pay APIs - Updated to use full URLs
   static const String advancePayListUrl = '/api/advance_pay/tree';
   static const String advancePayCreateUrl = '/api/advance_pay/create';
-  
+
   // Archive User Endpoint
-  static const String assignableEmployeesEndpoint ='/api/task/assignable_employees';
-  
+  static const String assignableEmployeesEndpoint =
+      '/api/task/assignable_employees';
+
   static const String getProfileEndpoint = '/api/get/profile';
 
   // Payslip worked days and inputs endpoint

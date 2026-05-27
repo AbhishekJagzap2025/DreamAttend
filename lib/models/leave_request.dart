@@ -26,16 +26,16 @@ class LeaveRequest {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': employeeName,
-    'start_date': startDate,
-    'end_date': endDate,
-    'reason': reason,
-    'state': status,
-    'leave_type': leaveType,
-    'half_day_type': halfDayType,
-    'leave_sub_type': leaveSubType,
-  };
+        'id': id,
+        'name': employeeName,
+        'start_date': startDate,
+        'end_date': endDate,
+        'reason': reason,
+        'state': status,
+        'leave_type': leaveType,
+        'half_day_type': halfDayType,
+        'leave_sub_type': leaveSubType,
+      };
 
   factory LeaveRequest.fromJson(Map<String, dynamic> json) {
     print('Parsing JSON: $json');
@@ -50,8 +50,9 @@ class LeaveRequest {
         try {
           if (trimmedDate.contains('-') && trimmedDate.split('-').length == 3) {
             final parts = trimmedDate.split('-');
-            final isDisplayFormat =
-                parts[0].length == 2 && parts[1].length == 2 && parts[2].length == 4;
+            final isDisplayFormat = parts[0].length == 2 &&
+                parts[1].length == 2 &&
+                parts[2].length == 4;
 
             if (isDisplayFormat) {
               return DateTime.tryParse('${parts[2]}-${parts[1]}-${parts[0]}');
@@ -87,13 +88,12 @@ class LeaveRequest {
 
     return LeaveRequest(
       id: json['id'],
-      employeeName:
-          json['employee_id'] is List
-              ? json['employee_id'][1] ?? ''
-              : json['employee_id']?['name'] ??
-                  json['employee_name'] ??
-                  json['employee'] ??
-                  '',
+      employeeName: json['employee_id'] is List
+          ? json['employee_id'][1] ?? ''
+          : json['employee_id']?['name'] ??
+              json['employee_name'] ??
+              json['employee'] ??
+              '',
       startDate: formatDate(json['start_date']),
       endDate: formatDate(json['end_date']),
       reason: json['reason'] ?? '',

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -63,7 +64,7 @@ class _CreateEmployeePageState extends State<CreateEmployeePage> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color.fromARGB(255, 7, 56, 80),
+              primary: AppColor.primary,
             ),
           ),
           child: child!,
@@ -79,26 +80,26 @@ class _CreateEmployeePageState extends State<CreateEmployeePage> {
     }
   }
 
-Future<void> _pickImage() async {
-  final picker = ImagePicker();
-  XFile? pickedFile;
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    XFile? pickedFile;
 
-  try {
-    pickedFile = await picker.pickImage(source: ImageSource.gallery);
-  } catch (e) {
+    try {
+      pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    } catch (e) {
+      if (!mounted) return;
+      errorSnackBar('Error', 'Unable to select image. Please try again.');
+      return;
+    }
+
     if (!mounted) return;
-    errorSnackBar('Error', 'Unable to select image. Please try again.');
-    return;
-  }
 
-  if (!mounted) return;
-
-  if (pickedFile != null) {
-    setState(() {
-      _imageFile = pickedFile;
-    });
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = pickedFile;
+      });
+    }
   }
-}
 
   Future<void> _createEmployee() async {
     if (!_formKey.currentState!.validate() || _isSubmitting) return;
@@ -119,7 +120,7 @@ Future<void> _pickImage() async {
         'employee_id': _employeeIdController.text.isEmpty
             ? null
             : _employeeIdController.text.trim(),
-         'dob': _dobController.text,
+        'dob': _dobController.text,
         'job_title': _jobTitleController.text.trim(),
         'mobile': _mobileController.text.trim(),
         'email': _emailController.text.trim(),
@@ -128,7 +129,6 @@ Future<void> _pickImage() async {
         'gender': _genderOptions[_selectedGender!]!,
         if (imageBase64 != null) 'image': imageBase64,
         'password': _passwordController.text.trim(),
-
       };
 
       await _employeeService.createEmployee(employeeData);
@@ -152,8 +152,8 @@ Future<void> _pickImage() async {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Employee'),
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColor.primary,
+        foregroundColor: AppColor.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -166,21 +166,20 @@ Future<void> _pickImage() async {
               child: Column(
                 children: [
                   TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                    ),
-                    // validator: (value) => value!.isEmpty ? 'Required' : null,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Full name is required';
-                            }
-                            if (value.trim().length < 3) {
-                              return 'Enter a valid name';
-                            }
-                            return null;
-                          }
-                  ),
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Full Name',
+                      ),
+                      // validator: (value) => value!.isEmpty ? 'Required' : null,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Full name is required';
+                        }
+                        if (value.trim().length < 3) {
+                          return 'Enter a valid name';
+                        }
+                        return null;
+                      }),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _employeeIdController,
@@ -241,25 +240,26 @@ Future<void> _pickImage() async {
                       //   return 'Email must end with @dreamwarez.in';
                       // }
                       if (!RegExp(r'^[^@]+@dreamwarez\.in$').hasMatch(value)) {
-                                  return 'Enter a valid company email';
-                                }
+                        return 'Enter a valid company email';
+                      }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                    ),
-                    // validator: (value) => value!.isEmpty ? 'Required' : null,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) return 'Password is required';
-                            if (value.length < 6) return 'Minimum 6 characters required';
-                            return null;
-                          }
-                  ),
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                      ),
+                      // validator: (value) => value!.isEmpty ? 'Required' : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty)
+                          return 'Password is required';
+                        if (value.length < 6)
+                          return 'Minimum 6 characters required';
+                        return null;
+                      }),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _addressController,
@@ -309,7 +309,7 @@ Future<void> _pickImage() async {
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
+                      border: Border.all(color: AppColor.grey),
                       borderRadius: BorderRadius.circular(4.0),
                     ),
                     padding: const EdgeInsets.symmetric(
@@ -322,23 +322,24 @@ Future<void> _pickImage() async {
                         const Text(
                           'Image',
                           style: TextStyle(
-                            color: Colors.grey,
+                            color: AppColor.grey,
                             fontSize: 12.0,
                           ),
                         ),
-                      
-                          ElevatedButton(
-                                 onPressed: _isSubmitting ? null : _pickImage,
+                        ElevatedButton(
+                          onPressed: _isSubmitting ? null : _pickImage,
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(double.infinity, 36.0),
                             padding: EdgeInsets.zero,
                             elevation: 0,
-                            backgroundColor: Colors.transparent,
-                            foregroundColor: Colors.black,
+                            backgroundColor: AppColor.transparent,
+                            foregroundColor: AppColor.black,
                             textStyle: const TextStyle(fontSize: 16.0),
                           ),
                           child: Text(
-                            _imageFile == null ? 'Select Image' : 'Image Selected',
+                            _imageFile == null
+                                ? 'Select Image'
+                                : 'Image Selected',
                           ),
                         ),
                       ],
@@ -352,9 +353,9 @@ Future<void> _pickImage() async {
                   //       onPressed: () => Navigator.pop(context),
                   //       style: ButtonStyle(
                   //         backgroundColor:
-                  //             WidgetStateProperty.all<Color>(Colors.red),
+                  //             WidgetStateProperty.all<Color>(AppColor.red),
                   //         foregroundColor:
-                  //             WidgetStateProperty.all<Color>(Colors.white),
+                  //             WidgetStateProperty.all<Color>(AppColor.white),
                   //       ),
                   //       child: const Text('Cancel'),
                   //     ),
@@ -362,8 +363,8 @@ Future<void> _pickImage() async {
                   //     ElevatedButton(
                   //       onPressed: _isSubmitting ? null : _createEmployee,
                   //       style: ElevatedButton.styleFrom(
-                  //         backgroundColor: const Color.fromARGB(255, 24, 128, 54),
-                  //         foregroundColor: Colors.white,
+                  //         backgroundColor: AppColor.successDark,
+                  //         foregroundColor: AppColor.white,
                   //       ),
                   //       child: _isSubmitting
                   //           ? const SizedBox(
@@ -371,7 +372,7 @@ Future<void> _pickImage() async {
                   //               height: 18,
                   //               child: CircularProgressIndicator(
                   //                 strokeWidth: 2,
-                  //                 color: Colors.white,
+                  //                 color: AppColor.white,
                   //               ),
                   //             )
                   //           : const Text('Create Employee'),
@@ -379,75 +380,76 @@ Future<void> _pickImage() async {
                   //   ],
                   // ),
                   Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
                             height: 48,
-                            child: 
-                            // OutlinedButton(
-                            //   onPressed: () => Navigator.pop(context),
-                            //   style: OutlinedButton.styleFrom(
-                            //     // backgroundColor: const Color.fromARGB(255, 198, 46, 69), 
-                            //     backgroundColor: Colors.red,
+                            child:
+                                // OutlinedButton(
+                                //   onPressed: () => Navigator.pop(context),
+                                //   style: OutlinedButton.styleFrom(
+                                //     // backgroundColor: AppColor.dangerDark,
+                                //     backgroundColor: AppColor.red,
 
-                            //     side: BorderSide(color: Colors.grey.shade400),
-                            //     shape: RoundedRectangleBorder(
-                            //       borderRadius: BorderRadius.circular(6),
-                                   
-                            //     ),
-                            //   ),
-                            //   child: const Text(
-                            //     'Cancel',
-                            //     style: TextStyle(color: Colors.black87),
-                            //   ),
-                            // ),
-                                  OutlinedButton(
-                                      onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-                                      style: OutlinedButton.styleFrom(
-                                        backgroundColor: Colors.red,
-                                        side: BorderSide(color: Colors.red),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        'Cancel',
-                                        style: TextStyle(
-                                          color: Colors.white, // 🔥 FIXED
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    )
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: ElevatedButton(
-                              onPressed: _isSubmitting ? null : _createEmployee,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF188036),
+                                //     side: BorderSide(color: AppColor.grey.shade400),
+                                //     shape: RoundedRectangleBorder(
+                                //       borderRadius: BorderRadius.circular(6),
+
+                                //     ),
+                                //   ),
+                                //   child: const Text(
+                                //     'Cancel',
+                                //     style: TextStyle(color: AppColor.black87),
+                                //   ),
+                                // ),
+                                OutlinedButton(
+                              onPressed: _isSubmitting
+                                  ? null
+                                  : () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: AppColor.red,
+                                side: BorderSide(color: AppColor.red),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6), 
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                                elevation: 1,
                               ),
-                              child: _isSubmitting
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Create Employee'),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: AppColor.white, // 🔥 FIXED
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            )),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: _isSubmitting ? null : _createEmployee,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColor.successDark,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              elevation: 1,
                             ),
+                            child: _isSubmitting
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColor.white,
+                                    ),
+                                  )
+                                : const Text('Create Employee'),
                           ),
                         ),
-                      ],
-                    )
+                      ),
+                    ],
+                  )
                 ],
               ),
             ),

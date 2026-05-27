@@ -1,6 +1,7 @@
 import 'package:dream_attend/Services/user_profile_service.dart';
 import 'package:dream_attend/models/user_profile_model.dart';
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -41,8 +42,6 @@ class _UserProfileState extends State<UserProfile> {
   late String _address;
   late String _mobile;
   late String _jobTitle;
-
-  final Color _primaryColor = const Color.fromARGB(255, 7, 56, 80);
 
   final UserProfileService _userProfileService = UserProfileService();
   final ApiService _apiService = ApiService();
@@ -112,12 +111,12 @@ class _UserProfileState extends State<UserProfile> {
   void _changePhoto() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColor.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColor.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           padding: const EdgeInsets.all(24),
@@ -130,7 +129,7 @@ class _UserProfileState extends State<UserProfile> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: AppColor.grey[300],
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -141,7 +140,7 @@ class _UserProfileState extends State<UserProfile> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: _primaryColor,
+                  color: AppColor.primary,
                 ),
               ),
               const SizedBox(height: 24),
@@ -188,20 +187,20 @@ class _UserProfileState extends State<UserProfile> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: _primaryColor.withOpacity(0.2)),
+          border: Border.all(color: AppColor.primary.withOpacity(0.2)),
           borderRadius: BorderRadius.circular(12),
-          color: _primaryColor.withOpacity(0.05),
+          color: AppColor.primary.withOpacity(0.05),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: _primaryColor),
+            Icon(icon, size: 32, color: AppColor.primary),
             const SizedBox(height: 8),
             Text(
               label,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: _primaryColor,
+                color: AppColor.primary,
               ),
             ),
           ],
@@ -232,7 +231,7 @@ class _UserProfileState extends State<UserProfile> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: _primaryColor,
+                  color: AppColor.primary,
                 ),
               ),
               const SizedBox(height: 20),
@@ -242,14 +241,14 @@ class _UserProfileState extends State<UserProfile> {
                   labelText: title,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColor.grey[300]!),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: _primaryColor, width: 2),
+                    borderSide: BorderSide(color: AppColor.primary, width: 2),
                   ),
                   filled: true,
-                  fillColor: Colors.grey[50],
+                  fillColor: AppColor.grey[50],
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
@@ -280,7 +279,7 @@ class _UserProfileState extends State<UserProfile> {
                     child: Text(
                       'Cancel',
                       style: TextStyle(
-                        color: Colors.grey[600],
+                        color: AppColor.grey[600],
                         fontSize: 16,
                       ),
                     ),
@@ -288,8 +287,8 @@ class _UserProfileState extends State<UserProfile> {
                   const SizedBox(width: 12),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryColor,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColor.primary,
+                      foregroundColor: AppColor.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -301,7 +300,11 @@ class _UserProfileState extends State<UserProfile> {
                     ),
                     onPressed: () {
                       if (controller.text.trim().isEmpty) {
-                         showAppSnackBar(title: "Validation",message: "Field cannot be empty",type: AppSnackBarType.warning,);
+                        showAppSnackBar(
+                          title: "Validation",
+                          message: "Field cannot be empty",
+                          type: AppSnackBarType.warning,
+                        );
                       } else {
                         onSave(controller.text.trim());
                         Navigator.pop(context);
@@ -372,12 +375,16 @@ class _UserProfileState extends State<UserProfile> {
         }
       });
 
-      showAppSnackBar(message: "Profile updated successfully",type: AppSnackBarType.success,);
-      
+      showAppSnackBar(
+        message: "Profile updated successfully",
+        type: AppSnackBarType.success,
+      );
     } catch (e) {
       print('Error updating profile: $e');
-      showAppSnackBar(message: "Unable to update profile. Please try again.",type: AppSnackBarType.error,);
-      
+      showAppSnackBar(
+        message: "Unable to update profile. Please try again.",
+        type: AppSnackBarType.error,
+      );
     }
   }
 
@@ -406,7 +413,7 @@ class _UserProfileState extends State<UserProfile> {
       if (response.statusCode == 200 && responseData['status'] == 'SUCCESS') {
         await _apiService.clearSessionData();
 
-              showAppSnackBar(
+        showAppSnackBar(
           message: "Logout successful",
           type: AppSnackBarType.success,
         );
@@ -417,7 +424,10 @@ class _UserProfileState extends State<UserProfile> {
       }
     } catch (e) {
       print('Error during logout: $e');
-      showAppSnackBar(message: "Unable to logout. Please try again.",type: AppSnackBarType.error,);
+      showAppSnackBar(
+        message: "Unable to logout. Please try again.",
+        type: AppSnackBarType.error,
+      );
     }
   }
 
@@ -437,14 +447,14 @@ class _UserProfileState extends State<UserProfile> {
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.grey[700]),
+              style: TextStyle(color: AppColor.grey[700]),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Delete',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: AppColor.red),
             ),
           ),
         ],
@@ -464,41 +474,41 @@ class _UserProfileState extends State<UserProfile> {
         (route) => false,
       );
 
-     showAppSnackBar(
-  message: "Account deleted successfully",
-  type: AppSnackBarType.success,
-);
+      showAppSnackBar(
+        message: "Account deleted successfully",
+        type: AppSnackBarType.success,
+      );
     } catch (e) {
       print('delete error: $e');
-    
-    showAppSnackBar(
-  message: "Failed to delete account",
-  type: AppSnackBarType.error,
-);
+
+      showAppSnackBar(
+        message: "Failed to delete account",
+        type: AppSnackBarType.error,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F6F9),
+      backgroundColor: AppColor.scaffoldBackground,
       appBar: AppBar(
         title: const Text(
           'Profile',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18,
-            color: Colors.white,
+            color: AppColor.white,
           ),
         ),
-        backgroundColor: const Color(0xFF073850),
-        surfaceTintColor: const Color(0xFF073850),
+        backgroundColor: AppColor.primary,
+        surfaceTintColor: AppColor.primary,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColor.white),
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
+            icon: const Icon(Icons.more_vert, color: AppColor.white),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -520,7 +530,7 @@ class _UserProfileState extends State<UserProfile> {
                   children: [
                     Icon(
                       isEditing ? Icons.check : Icons.edit_outlined,
-                      color: _primaryColor,
+                      color: AppColor.primary,
                       size: 20,
                     ),
                     const SizedBox(width: 12),
@@ -535,7 +545,7 @@ class _UserProfileState extends State<UserProfile> {
                 value: 'logout',
                 child: Row(
                   children: [
-                    Icon(Icons.logout, color: Colors.red, size: 20),
+                    Icon(Icons.logout, color: AppColor.red, size: 20),
                     SizedBox(width: 12),
                     Text('Logout', style: TextStyle(fontSize: 14)),
                   ],
@@ -545,7 +555,7 @@ class _UserProfileState extends State<UserProfile> {
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: Colors.orangeAccent, size: 20),
+                    Icon(Icons.delete, color: AppColor.orangeAccent, size: 20),
                     SizedBox(width: 12),
                     Text('Delete Account', style: TextStyle(fontSize: 14)),
                   ],
@@ -563,11 +573,11 @@ class _UserProfileState extends State<UserProfile> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.white,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: AppColor.black.withOpacity(0.06),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
@@ -584,10 +594,11 @@ class _UserProfileState extends State<UserProfile> {
                           height: 120,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: _primaryColor, width: 4),
+                            border:
+                                Border.all(color: AppColor.primary, width: 4),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.12),
+                                color: AppColor.black.withOpacity(0.12),
                                 blurRadius: 15,
                                 offset: const Offset(0, 5),
                               ),
@@ -612,18 +623,18 @@ class _UserProfileState extends State<UserProfile> {
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: _primaryColor,
+                                color: AppColor.primary,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: AppColor.black.withOpacity(0.1),
                                     blurRadius: 8,
                                   ),
                                 ],
                               ),
                               child: const Icon(
                                 Icons.camera_alt,
-                                color: Colors.white,
+                                color: AppColor.white,
                                 size: 20,
                               ),
                             ),
@@ -638,7 +649,7 @@ class _UserProfileState extends State<UserProfile> {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF073850),
+                      color: AppColor.primary,
                     ),
                   ),
                 ],
@@ -653,11 +664,11 @@ class _UserProfileState extends State<UserProfile> {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColor.white,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: AppColor.black.withOpacity(0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -673,7 +684,7 @@ class _UserProfileState extends State<UserProfile> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: _primaryColor,
+                              color: AppColor.primary,
                             ),
                           ),
                         ),
@@ -727,8 +738,8 @@ class _UserProfileState extends State<UserProfile> {
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _primaryColor,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColor.primary,
+                          foregroundColor: AppColor.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -772,7 +783,7 @@ class _UserProfileState extends State<UserProfile> {
           ? null
           : BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+                bottom: BorderSide(color: AppColor.grey[200]!, width: 1),
               ),
             ),
       child: Row(
@@ -780,12 +791,12 @@ class _UserProfileState extends State<UserProfile> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: _primaryColor.withOpacity(0.1),
+              color: AppColor.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               icon,
-              color: _primaryColor,
+              color: AppColor.primary,
               size: 20,
             ),
           ),
@@ -798,7 +809,7 @@ class _UserProfileState extends State<UserProfile> {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: AppColor.grey[600],
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -808,7 +819,7 @@ class _UserProfileState extends State<UserProfile> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: AppColor.black87,
                   ),
                 ),
               ],
@@ -818,7 +829,7 @@ class _UserProfileState extends State<UserProfile> {
             IconButton(
               icon: Icon(
                 Icons.edit_outlined,
-                color: _primaryColor,
+                color: AppColor.primary,
                 size: 20,
               ),
               onPressed: onEdit,

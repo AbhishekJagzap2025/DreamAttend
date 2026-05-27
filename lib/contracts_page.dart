@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/services/employee_service.dart';
@@ -90,7 +91,8 @@ class _ContractsPageState extends State<ContractsPage> {
     return contracts.any((contract) {
       final matchesId = employeeId != null && contract.employeeId == employeeId;
       final matchesName = normalizedSelectedName.isNotEmpty &&
-          _normalizeEmployeeName(contract.employeeName) == normalizedSelectedName;
+          _normalizeEmployeeName(contract.employeeName) ==
+              normalizedSelectedName;
       return matchesId || matchesName;
     });
   }
@@ -237,7 +239,8 @@ class _ContractsPageState extends State<ContractsPage> {
       'schedule_pay': _selectedSchedule ?? 'monthly',
       'hra': double.tryParse(_hraController.text) ?? 0.0,
       'da': double.tryParse(_daController.text) ?? 0.0,
-      'travel_allowance': double.tryParse(_travelAllowanceController.text) ?? 0.0,
+      'travel_allowance':
+          double.tryParse(_travelAllowanceController.text) ?? 0.0,
       'meal_allowance': double.tryParse(_mealAllowanceController.text) ?? 0.0,
       'medical_allowance':
           double.tryParse(_medicalAllowanceController.text) ?? 0.0,
@@ -397,8 +400,8 @@ class _ContractsPageState extends State<ContractsPage> {
           builder: (context) => Scaffold(
             appBar: AppBar(
               title: Text(detailedContract.name),
-              backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-              foregroundColor: Colors.white,
+              backgroundColor: AppColor.primary,
+              foregroundColor: AppColor.white,
               elevation: 0,
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(
@@ -406,7 +409,7 @@ class _ContractsPageState extends State<ContractsPage> {
                 ),
               ),
             ),
-            backgroundColor: const Color(0xFFF1F6F9),
+            backgroundColor: AppColor.scaffoldBackground,
             body: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -485,7 +488,7 @@ class _ContractsPageState extends State<ContractsPage> {
                                   .titleLarge
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF073850),
+                                    color: AppColor.primary,
                                   ),
                             ),
                             const SizedBox(height: 12),
@@ -567,8 +570,8 @@ class _ContractsPageState extends State<ContractsPage> {
                               Navigator.pop(context);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColor.green,
+                              foregroundColor: AppColor.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -608,7 +611,7 @@ class _ContractsPageState extends State<ContractsPage> {
           Icon(
             icon,
             size: 20,
-            color: const Color(0xFF073850),
+            color: AppColor.primary,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -619,7 +622,7 @@ class _ContractsPageState extends State<ContractsPage> {
                   label,
                   style: const TextStyle(
                     fontSize: 14,
-                    color: Colors.grey,
+                    color: AppColor.grey,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -630,11 +633,11 @@ class _ContractsPageState extends State<ContractsPage> {
                     fontWeight: FontWeight.w500,
                     color: isState
                         ? value == 'New'
-                            ? Colors.orange
+                            ? AppColor.orange
                             : value == 'Running'
-                                ? Colors.green
-                                : const Color(0xFF073850)
-                        : const Color(0xFF073850),
+                                ? AppColor.green
+                                : AppColor.primary
+                        : AppColor.primary,
                   ),
                 ),
               ],
@@ -655,7 +658,7 @@ class _ContractsPageState extends State<ContractsPage> {
             label,
             style: const TextStyle(
               fontSize: 16,
-              color: Color(0xFF073850),
+              color: AppColor.primary,
             ),
           ),
           Text(
@@ -663,7 +666,7 @@ class _ContractsPageState extends State<ContractsPage> {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF073850),
+              color: AppColor.primary,
             ),
           ),
         ],
@@ -680,30 +683,30 @@ class _ContractsPageState extends State<ContractsPage> {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Color(0xFF073850)),
-      floatingLabelStyle: const TextStyle(color: Color(0xFF073850)),
+      labelStyle: const TextStyle(color: AppColor.primary),
+      floatingLabelStyle: const TextStyle(color: AppColor.primary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.grey),
+        borderSide: const BorderSide(color: AppColor.grey),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.grey),
+        borderSide: const BorderSide(color: AppColor.grey),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF073850), width: 2),
+        borderSide: const BorderSide(color: AppColor.primary, width: 2),
       ),
       suffixIcon: icon != null
           ? IconButton(
-              icon: Icon(icon, color: const Color(0xFF073850)),
+              icon: Icon(icon, color: AppColor.primary),
               onPressed: onTap,
             )
           : null,
       prefixText: prefixText,
       suffixText: suffixText,
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColor.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
@@ -720,7 +723,7 @@ class _ContractsPageState extends State<ContractsPage> {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF073850),
+            color: AppColor.primary,
           ),
         ),
         const SizedBox(height: 8),
@@ -783,8 +786,8 @@ class _ContractsPageState extends State<ContractsPage> {
         builder: (context) => Scaffold(
           appBar: AppBar(
             title: const Text('Create New Contract'),
-            backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-            foregroundColor: Colors.white,
+            backgroundColor: AppColor.primary,
+            foregroundColor: AppColor.white,
             elevation: 0,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(
@@ -802,7 +805,7 @@ class _ContractsPageState extends State<ContractsPage> {
               },
             ),
           ),
-          backgroundColor: const Color(0xFFF1F6F9),
+          backgroundColor: AppColor.scaffoldBackground,
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -832,7 +835,7 @@ class _ContractsPageState extends State<ContractsPage> {
                                     child: Text(
                                       employee.name,
                                       style: const TextStyle(
-                                        color: Color(0xFF073850),
+                                        color: AppColor.primary,
                                       ),
                                     ),
                                   );
@@ -855,11 +858,11 @@ class _ContractsPageState extends State<ContractsPage> {
                                     ? 'Please select an employee'
                                     : null,
                                 borderRadius: BorderRadius.circular(12),
-                                dropdownColor: Colors.white,
+                                dropdownColor: AppColor.white,
                                 icon: const Icon(Icons.arrow_drop_down,
-                                    color: Color(0xFF073850)),
+                                    color: AppColor.primary),
                                 style: const TextStyle(
-                                  color: Color(0xFF073850),
+                                  color: AppColor.primary,
                                   fontSize: 16,
                                 ),
                               ),
@@ -920,7 +923,7 @@ class _ContractsPageState extends State<ContractsPage> {
                                     child: Text(
                                       schedule,
                                       style: const TextStyle(
-                                        color: Color(0xFF073850),
+                                        color: AppColor.primary,
                                       ),
                                     ),
                                   );
@@ -934,11 +937,11 @@ class _ContractsPageState extends State<ContractsPage> {
                                     ? 'Please select a schedule'
                                     : null,
                                 borderRadius: BorderRadius.circular(12),
-                                dropdownColor: Colors.white,
+                                dropdownColor: AppColor.white,
                                 icon: const Icon(Icons.arrow_drop_down,
-                                    color: Color(0xFF073850)),
+                                    color: AppColor.primary),
                                 style: const TextStyle(
-                                  color: Color(0xFF073850),
+                                  color: AppColor.primary,
                                   fontSize: 16,
                                 ),
                               ),
@@ -956,7 +959,7 @@ class _ContractsPageState extends State<ContractsPage> {
                                     child: Text(
                                       category,
                                       style: const TextStyle(
-                                        color: Color(0xFF073850),
+                                        color: AppColor.primary,
                                       ),
                                     ),
                                   );
@@ -970,11 +973,11 @@ class _ContractsPageState extends State<ContractsPage> {
                                     ? 'Please select a category'
                                     : null,
                                 borderRadius: BorderRadius.circular(12),
-                                dropdownColor: Colors.white,
+                                dropdownColor: AppColor.white,
                                 icon: const Icon(Icons.arrow_drop_down,
-                                    color: Color(0xFF073850)),
+                                    color: AppColor.primary),
                                 style: const TextStyle(
-                                  color: Color(0xFF073850),
+                                  color: AppColor.primary,
                                   fontSize: 16,
                                 ),
                               ),
@@ -986,34 +989,34 @@ class _ContractsPageState extends State<ContractsPage> {
                                 decoration: _buildInputDecoration(
                                     'Select salary structure'),
                                 items: _salaryStructures.map((structure) {
-                                   return DropdownMenuItem<String>(
-                                     value: structure.name,
-                                     child: Text(
-                                       structure.name,
-                                       style: const TextStyle(
-                                         color: Color(0xFF073850),
-                                       ),
-                                     ),
-                                   );
-                                 }).toList(),
+                                  return DropdownMenuItem<String>(
+                                    value: structure.name,
+                                    child: Text(
+                                      structure.name,
+                                      style: const TextStyle(
+                                        color: AppColor.primary,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
                                 onChanged: _salaryStructures.isEmpty
                                     ? null
                                     : (value) {
-                                   setState(() {
-                                     _selectedSalaryStructure = value;
-                                   });
-                                 },
+                                        setState(() {
+                                          _selectedSalaryStructure = value;
+                                        });
+                                      },
                                 validator: (value) => value == null
                                     ? _salaryStructures.isEmpty
                                         ? 'Salary structures are unavailable'
                                         : 'Please select a salary structure'
                                     : null,
                                 borderRadius: BorderRadius.circular(12),
-                                dropdownColor: Colors.white,
+                                dropdownColor: AppColor.white,
                                 icon: const Icon(Icons.arrow_drop_down,
-                                    color: Color(0xFF073850)),
+                                    color: AppColor.primary),
                                 style: const TextStyle(
-                                  color: Color(0xFF073850),
+                                  color: AppColor.primary,
                                   fontSize: 16,
                                 ),
                               ),
@@ -1060,7 +1063,7 @@ class _ContractsPageState extends State<ContractsPage> {
                                   .textTheme
                                   .titleLarge
                                   ?.copyWith(
-                                    color: const Color(0xFF073850),
+                                    color: AppColor.primary,
                                     fontWeight: FontWeight.w600,
                                   ),
                             ),
@@ -1105,14 +1108,14 @@ class _ContractsPageState extends State<ContractsPage> {
           bottomNavigationBar: Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColor.white,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: AppColor.grey.withOpacity(0.2),
                   spreadRadius: 1,
                   blurRadius: 10,
                   offset: const Offset(0, -3),
@@ -1126,23 +1129,23 @@ class _ContractsPageState extends State<ContractsPage> {
                     onPressed: _isSubmitting
                         ? null
                         : () {
-                      Navigator.pop(context);
-                      if (!mounted) return;
-                      setState(() {
-                        _clearForm();
-                      });
-                    },
+                            Navigator.pop(context);
+                            if (!mounted) return;
+                            setState(() {
+                              _clearForm();
+                            });
+                          },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      side: const BorderSide(color: Colors.red),
+                      side: const BorderSide(color: AppColor.red),
                     ),
                     child: const Text(
                       'Cancel',
                       style: TextStyle(
-                        color: Colors.red,
+                        color: AppColor.red,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1154,8 +1157,8 @@ class _ContractsPageState extends State<ContractsPage> {
                   child: ElevatedButton(
                     onPressed: _isSubmitting ? null : _submitContract,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColor.primary,
+                      foregroundColor: AppColor.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -1169,7 +1172,7 @@ class _ContractsPageState extends State<ContractsPage> {
                             child: CircularProgressIndicator(
                               strokeWidth: 2.2,
                               valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                                  AlwaysStoppedAnimation<Color>(AppColor.white),
                             ),
                           )
                         : const Text(
@@ -1228,22 +1231,22 @@ class _ContractsPageState extends State<ContractsPage> {
                           titleTextStyle: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF073850),
+                            color: AppColor.primary,
                           ),
                           leftChevronIcon: Icon(
                             Icons.chevron_left,
-                            color: Color(0xFF073850),
+                            color: AppColor.primary,
                             size: 28,
                           ),
                           rightChevronIcon: Icon(
                             Icons.chevron_right,
-                            color: Color(0xFF073850),
+                            color: AppColor.primary,
                             size: 28,
                           ),
                           decoration: BoxDecoration(
                             border: Border(
                               bottom: BorderSide(
-                                color: Colors.grey,
+                                color: AppColor.grey,
                                 width: 1,
                               ),
                             ),
@@ -1251,38 +1254,38 @@ class _ContractsPageState extends State<ContractsPage> {
                         ),
                         calendarStyle: const CalendarStyle(
                           selectedDecoration: BoxDecoration(
-                            color: Color.fromARGB(255, 7, 56, 80),
+                            color: AppColor.primary,
                             shape: BoxShape.circle,
                           ),
                           selectedTextStyle: TextStyle(
-                            color: Colors.white,
+                            color: AppColor.white,
                             fontWeight: FontWeight.bold,
                           ),
                           todayDecoration: BoxDecoration(
-                            color: Colors.grey,
+                            color: AppColor.grey,
                             shape: BoxShape.circle,
                           ),
                           todayTextStyle: TextStyle(
-                            color: Colors.white,
+                            color: AppColor.white,
                             fontWeight: FontWeight.bold,
                           ),
                           weekendTextStyle: TextStyle(
-                            color: Colors.black87,
+                            color: AppColor.black87,
                           ),
                           outsideTextStyle: TextStyle(
-                            color: Colors.grey,
+                            color: AppColor.grey,
                           ),
                           defaultTextStyle: TextStyle(
-                            color: Color(0xFF073850),
+                            color: AppColor.primary,
                           ),
                         ),
                         daysOfWeekStyle: const DaysOfWeekStyle(
                           weekdayStyle: TextStyle(
-                            color: Color(0xFF073850),
+                            color: AppColor.primary,
                             fontWeight: FontWeight.w600,
                           ),
                           weekendStyle: TextStyle(
-                            color: Color(0xFF073850),
+                            color: AppColor.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1294,7 +1297,7 @@ class _ContractsPageState extends State<ContractsPage> {
                           TextButton(
                             onPressed: () => Navigator.pop(context),
                             style: TextButton.styleFrom(
-                              foregroundColor: Colors.grey[600],
+                              foregroundColor: AppColor.grey[600],
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 12),
                               shape: RoundedRectangleBorder(
@@ -1325,9 +1328,8 @@ class _ContractsPageState extends State<ContractsPage> {
                               Navigator.pop(context);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 7, 56, 80),
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColor.primary,
+                              foregroundColor: AppColor.white,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 12),
                               shape: RoundedRectangleBorder(
@@ -1372,8 +1374,8 @@ class _ContractsPageState extends State<ContractsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Employee Contracts'),
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColor.primary,
+        foregroundColor: AppColor.white,
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -1381,13 +1383,13 @@ class _ContractsPageState extends State<ContractsPage> {
           ),
         ),
       ),
-      backgroundColor: const Color(0xFFF1F6F9),
+      backgroundColor: AppColor.scaffoldBackground,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
             ? const Center(
                 child: CircularProgressIndicator(
-                  color: Color(0xFF073850),
+                  color: AppColor.primary,
                 ),
               )
             : _contracts.isEmpty
@@ -1401,7 +1403,7 @@ class _ContractsPageState extends State<ContractsPage> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF073850),
+                            color: AppColor.primary,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -1409,7 +1411,7 @@ class _ContractsPageState extends State<ContractsPage> {
                           'Add a new contract to get started',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey,
+                            color: AppColor.grey,
                           ),
                         ),
                       ],
@@ -1431,7 +1433,7 @@ class _ContractsPageState extends State<ContractsPage> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF073850),
+                          color: AppColor.primary,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -1442,7 +1444,7 @@ class _ContractsPageState extends State<ContractsPage> {
                                   'No contracts match this employee',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: Colors.grey,
+                                    color: AppColor.grey,
                                   ),
                                 ),
                               )
@@ -1458,7 +1460,8 @@ class _ContractsPageState extends State<ContractsPage> {
                                     ),
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(12),
-                                      onTap: () => _showContractDetails(contract),
+                                      onTap: () =>
+                                          _showContractDetails(contract),
                                       child: Padding(
                                         padding: const EdgeInsets.all(16.0),
                                         child: Column(
@@ -1479,23 +1482,23 @@ class _ContractsPageState extends State<ContractsPage> {
                                                       fontSize: 18,
                                                       fontWeight:
                                                           FontWeight.w600,
-                                                      color: Color(0xFF073850),
+                                                      color: AppColor.primary,
                                                     ),
                                                   ),
                                                 ),
                                                 const SizedBox(width: 12),
                                                 Flexible(
                                                   child: Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
                                                       horizontal: 12,
                                                       vertical: 6,
                                                     ),
                                                     decoration: BoxDecoration(
                                                       color: contract.state ==
                                                               'draft'
-                                                          ? Colors.orange[50]
-                                                          : Colors.green[50],
+                                                          ? AppColor.orange[50]
+                                                          : AppColor.green[50],
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                         16,
@@ -1503,8 +1506,8 @@ class _ContractsPageState extends State<ContractsPage> {
                                                       border: Border.all(
                                                         color: contract.state ==
                                                                 'draft'
-                                                            ? Colors.orange
-                                                            : Colors.green,
+                                                            ? AppColor.orange
+                                                            : AppColor.green,
                                                         width: 1,
                                                       ),
                                                     ),
@@ -1525,8 +1528,10 @@ class _ContractsPageState extends State<ContractsPage> {
                                                             FontWeight.w600,
                                                         color: contract.state ==
                                                                 'draft'
-                                                            ? Colors.orange[800]
-                                                            : Colors.green[800],
+                                                            ? AppColor
+                                                                .orange[800]
+                                                            : AppColor
+                                                                .green[800],
                                                       ),
                                                     ),
                                                   ),
@@ -1538,7 +1543,7 @@ class _ContractsPageState extends State<ContractsPage> {
                                               contract.employeeName,
                                               style: const TextStyle(
                                                 fontSize: 16,
-                                                color: Colors.black87,
+                                                color: AppColor.black87,
                                               ),
                                             ),
                                             const SizedBox(height: 12),
@@ -1572,7 +1577,7 @@ class _ContractsPageState extends State<ContractsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddContractScreen,
-        backgroundColor: const Color.fromARGB(255, 7, 56, 80),
+        backgroundColor: AppColor.primary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -1591,7 +1596,7 @@ class _ContractsPageState extends State<ContractsPage> {
         Icon(
           icon,
           size: 18,
-          color: const Color(0xFF073850),
+          color: AppColor.primary,
         ),
         const SizedBox(width: 8),
         Column(
@@ -1601,7 +1606,7 @@ class _ContractsPageState extends State<ContractsPage> {
               label,
               style: const TextStyle(
                 fontSize: 12,
-                color: Colors.grey,
+                color: AppColor.grey,
               ),
             ),
             Text(
@@ -1610,7 +1615,7 @@ class _ContractsPageState extends State<ContractsPage> {
                   : 'Not specified',
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFF073850),
+                color: AppColor.primary,
               ),
             ),
           ],

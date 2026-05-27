@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dream_attend/Constant/app_color.dart';
 import 'advance_pay.dart';
 import 'contracts_page.dart';
 import 'payslip_page.dart';
@@ -16,7 +17,7 @@ class _PayrollPageState extends State<PayrollPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColor.white,
       body: Stack(
         children: [
           // Gradient Background
@@ -24,8 +25,8 @@ class _PayrollPageState extends State<PayrollPage> {
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFFe6f0fa),
-                  Color(0xFFf7fafc),
+                  AppColor.payrollLightBlue,
+                  AppColor.payrollBackground,
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -36,14 +37,14 @@ class _PayrollPageState extends State<PayrollPage> {
           Positioned(
             top: -80,
             right: -80,
-            child: _backgroundCircle(
-                200, const Color(0xFF6b7280).withOpacity(0.1)),
+            child:
+                _backgroundCircle(200, AppColor.payrollMuted.withOpacity(0.1)),
           ),
           Positioned(
             bottom: -100,
             left: -100,
-            child: _backgroundCircle(
-                250, const Color(0xFF3b82f6).withOpacity(0.15)),
+            child:
+                _backgroundCircle(250, AppColor.payrollInfo.withOpacity(0.15)),
           ),
           SafeArea(
             child: SingleChildScrollView(
@@ -59,7 +60,10 @@ class _PayrollPageState extends State<PayrollPage> {
                     icon: Icons.receipt_long_rounded,
                     label: 'Payslips',
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF6366f1), Color(0xFF4f46e5)],
+                      colors: [
+                        AppColor.payrollIndigo,
+                        AppColor.payrollIndigoDark
+                      ],
                     ),
                     onPressed: () {
                       Navigator.push(
@@ -75,7 +79,10 @@ class _PayrollPageState extends State<PayrollPage> {
                     icon: Icons.assignment_turned_in_rounded,
                     label: 'Contracts',
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF10b981), Color(0xFF059669)],
+                      colors: [
+                        AppColor.payrollGreen,
+                        AppColor.payrollGreenDark
+                      ],
                     ),
                     onPressed: () {
                       Navigator.push(
@@ -92,8 +99,8 @@ class _PayrollPageState extends State<PayrollPage> {
                     label: 'Advance Pay',
                     gradient: const LinearGradient(
                       colors: [
-                        Color.fromARGB(255, 139, 169, 65),
-                        Color.fromARGB(255, 136, 185, 68)
+                        AppColor.payrollAccentDark,
+                        AppColor.payrollAccent
                       ],
                     ),
                     onPressed: () {
@@ -166,7 +173,7 @@ class _PayrollPageState extends State<PayrollPage> {
                     '© ${DateTime.now().year} Payroll System (Dreamwarez)',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade600,
+                      color: AppColor.grey.shade600,
                     ),
                   ),
                 ],
@@ -182,15 +189,15 @@ class _PayrollPageState extends State<PayrollPage> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        color: Colors.white,
+        color: AppColor.white,
         // boxShadow: [],
-                  boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-            ),
-          ],
-        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.black.withOpacity(0.05),
+            blurRadius: 8,
+          ),
+        ],
+        border: Border.all(color: AppColor.grey.shade200),
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -198,7 +205,7 @@ class _PayrollPageState extends State<PayrollPage> {
           const Icon(
             Icons.account_balance_wallet_rounded,
             size: 80,
-            color: Color(0xFF1e3a8a),
+            color: AppColor.payrollBlue,
           ),
           const SizedBox(height: 16),
           const Text(
@@ -206,7 +213,7 @@ class _PayrollPageState extends State<PayrollPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1e3a8a),
+              color: AppColor.payrollBlue,
             ),
             textAlign: TextAlign.center,
           ),
@@ -215,7 +222,7 @@ class _PayrollPageState extends State<PayrollPage> {
             'Streamline payslips, contracts, and settings with ease.',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade600,
+              color: AppColor.grey.shade600,
             ),
             textAlign: TextAlign.center,
           ),
@@ -235,41 +242,41 @@ class _PayrollPageState extends State<PayrollPage> {
     //   onTap: onPressed,
     //   child: AnimatedContainer(
     return Material(
-  color: Colors.transparent,
-  child: InkWell(
-    borderRadius: BorderRadius.circular(16),
-    onTap: onPressed,
-    child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          gradient: gradient,
+        color: AppColor.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              blurRadius: 10,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
+          onTap: onPressed,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              gradient: gradient,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColor.grey.withOpacity(0.3),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-        child: Row(
-          children: [
-            Icon(icon, size: 32, color: Colors.white),
-            const SizedBox(width: 20),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            child: Row(
+              children: [
+                Icon(icon, size: 32, color: AppColor.white),
+                const SizedBox(width: 20),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: AppColor.white,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    ));
+          ),
+        ));
   }
 
   Widget _buildConfigDropdown(BuildContext context) {
@@ -283,12 +290,12 @@ class _PayrollPageState extends State<PayrollPage> {
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           // gradient: const LinearGradient(
-          //   colors: [Color(0xFFf97316), Color(0xFFea580c)],
+          //   colors: [AppColor.payrollOrange, AppColor.payrollOrangeDark],
           // ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
+              color: AppColor.grey.withOpacity(0.3),
               blurRadius: 10,
               spreadRadius: 2,
               offset: const Offset(0, 4),
@@ -298,14 +305,14 @@ class _PayrollPageState extends State<PayrollPage> {
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         child: const Row(
           children: [
-            // const Icon(Icons.settings_suggest, size: 32, color: Colors.white),
+            // const Icon(Icons.settings_suggest, size: 32, color: AppColor.white),
             // const SizedBox(width: 20),
             // const Text(
             //   'Configuration',
             //   style: TextStyle(
             //     fontSize: 16,
             //     fontWeight: FontWeight.w500,
-            //     color: Colors.white,
+            //     color: AppColor.white,
             //   ),
             // ),
             // const Spacer(),
@@ -314,7 +321,7 @@ class _PayrollPageState extends State<PayrollPage> {
             //       ? Icons.arrow_drop_up_rounded
             //       : Icons.arrow_drop_down_rounded,
             //   size: 32,
-            //   color: Colors.white,
+            //   color: AppColor.white,
             // ),
           ],
         ),
@@ -332,11 +339,11 @@ class _PayrollPageState extends State<PayrollPage> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: const Color(0xFFfb923c),
+          color: AppColor.payrollOrangeLight,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
+              color: AppColor.grey.withOpacity(0.2),
               blurRadius: 8,
               spreadRadius: 1,
               offset: const Offset(0, 3),
@@ -352,7 +359,7 @@ class _PayrollPageState extends State<PayrollPage> {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.white,
+                color: AppColor.white,
               ),
             ),
           ],

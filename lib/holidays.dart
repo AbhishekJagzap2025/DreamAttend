@@ -1,18 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-
-/// Professional Color Palette for Calendar
-class CalendarColors {
-  static const Color primaryBlue = Color(0xFF0B4A5E);
-  static const Color accentTeal = Color(0xFF00897B);
-  static const Color lightBackground = Color(0xFFF8FAFC);
-  static const Color cardBackground = Colors.white;
-  static const Color textDark = Color(0xFF2D3748);
-  static const Color textLight = Color(0xFF718096);
-  static const Color holidayRed = Color(0xFFE53E3E);
-  static const Color successGreen = Color(0xFF38A169);
-  static const Color warningOrange = Color(0xFFED8936);
-}
+import 'package:flutter/services.dart';
+import 'Constant/app_color.dart';
 
 class Holidays extends StatefulWidget {
   const Holidays({super.key});
@@ -91,18 +80,33 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
     );
   }
 
+  // Widget _buildProfessionalAppBar() {
+  //   return SliverAppBar(
+  //     expandedHeight: 120,
+  //     floating: false,
+  //     pinned: true,
+  //     backgroundColor: CalendarColors.primaryBlue,
+  //     foregroundColor: AppColor.white,
+  //     elevation: 0,
   Widget _buildProfessionalAppBar() {
     return SliverAppBar(
       expandedHeight: 120,
       floating: false,
       pinned: true,
       backgroundColor: CalendarColors.primaryBlue,
-      foregroundColor: Colors.white,
+      foregroundColor: AppColor.white, // keeps icons white
       elevation: 0,
+
+      titleTextStyle: const TextStyle(
+        color: AppColor.white,
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+      ),
       flexibleSpace: FlexibleSpaceBar(
         title: const Text(
           'Calendar & Holidays',
           style: TextStyle(
+            color: AppColor.white,
             fontWeight: FontWeight.w600,
             fontSize: 20,
           ),
@@ -124,10 +128,10 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: AppColor.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(Icons.arrow_back, color: Colors.white),
+          child: const Icon(Icons.arrow_back, color: AppColor.white),
         ),
         onPressed: () => Navigator.pop(context),
       ),
@@ -139,11 +143,11 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColor.black.withOpacity(0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -167,7 +171,7 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
             ),
             child: const Icon(
               Icons.calendar_month,
-              color: Colors.white,
+              color: AppColor.white,
               size: 28,
             ),
           ),
@@ -205,11 +209,11 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColor.black.withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -227,6 +231,7 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
           },
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
           onDaySelected: (selectedDay, focusedDay) {
+            HapticFeedback.lightImpact();
             setState(() {
               _selectedDay = selectedDay;
               _focusedDay = focusedDay;
@@ -345,7 +350,7 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
                     child: Text(
                       '${day.day}',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColor.white,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -392,11 +397,11 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColor.black.withOpacity(0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -470,11 +475,11 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColor.black.withOpacity(0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -545,7 +550,7 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
               child: Text(
                 '${holiday.key.day}',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColor.white,
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
                 ),
