@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:dream_attend/report.dart';
 import 'package:flutter/material.dart';
 import 'package:dream_attend/Constant/app_color.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '/models/attendance.dart';
 import '/models/attendance_report.dart';
@@ -67,10 +69,12 @@ class AttendancePage extends StatefulWidget {
 }
 
 class _AttendancePageState extends State<AttendancePage> {
+  static const String _attendanceCacheKey = 'cached_attendance_records';
+
   // coordinates
   final double targetLatitude = 19.716125;
   final double targetLongitude = 74.481272;
-  final double allowedRadiusInMeters = 1000000;
+  final double allowedRadiusInMeters = 1000;
 
   List<Attendance> users = [];
   List<Attendance> filteredUsers = [];
@@ -81,6 +85,7 @@ class _AttendancePageState extends State<AttendancePage> {
   bool _isCreateRecordLoading = false;
   String? _loadErrorMessage;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _attendanceScrollController = ScrollController();
   DateTime? _selectedDate;
   List<AttendanceReport>? _reports; // cache for report data
 
@@ -182,42 +187,102 @@ class _AttendancePageState extends State<AttendancePage> {
     }
   }
 
-  Future<void> fetchAttendanceData() async {
-    setState(() => _isLoading = true);
+  void _applyAttendanceList(List<Attendance> attendanceList) {
+    if (widget.isAdmin) {
+      users = attendanceList;
+      filteredUsers = users;
+      return;
+    }
+
+    users = attendanceList
+        .where(
+          (record) =>
+              record.name.toLowerCase() == widget.currentUserName.toLowerCase(),
+        )
+        .toList();
+    if (users.isEmpty) {
+      users = [
+        Attendance(
+          name: widget.currentUserName,
+          checkIn: null,
+          checkOut: null,
+          lunchIn: null,
+          lunchOut: null,
+          daysPresent: 0,
+          totalHours: '00:00:00',
+          lunchDurationDisplay: '00:00:00',
+        ),
+      ];
+    }
+    filteredUsers = users;
+  }
+
+  Future<bool> _loadCachedAttendanceData() async {
     try {
-      final attendanceList = await _attendanceService.fetchAttendance();
+      final prefs = await SharedPreferences.getInstance();
+      final cachedJson = prefs.getString(_attendanceCacheKey);
+      if (cachedJson == null || cachedJson.isEmpty) return false;
+
+      final decoded = jsonDecode(cachedJson);
+      if (decoded is! List) return false;
+
+      final cachedAttendance = decoded
+          .whereType<Map<String, dynamic>>()
+          .map(Attendance.fromJson)
+          .toList();
+      if (cachedAttendance.isEmpty) return false;
+      if (!mounted) return false;
+
       setState(() {
         _loadErrorMessage = null;
-        if (widget.isAdmin) {
-          users = attendanceList;
-          filteredUsers = users;
-        } else {
-          users = attendanceList
-              .where(
-                (record) =>
-                    record.name.toLowerCase() ==
-                    widget.currentUserName.toLowerCase(),
-              )
-              .toList();
-          if (users.isEmpty) {
-            users = [
-              Attendance(
-                name: widget.currentUserName,
-                checkIn: null,
-                checkOut: null,
-                lunchIn: null,
-                lunchOut: null,
-                daysPresent: 0,
-                totalHours: '00:00:00',
-                lunchDurationDisplay: '00:00:00',
-              ),
-            ];
-          }
-          filteredUsers = users;
-        }
+        _applyAttendanceList(cachedAttendance);
+        _isLoading = false;
+      });
+      return true;
+    } catch (e) {
+      debugPrint('Failed to load cached attendance data: $e');
+      return false;
+    }
+  }
+
+  Future<void> _cacheAttendanceData(List<Attendance> attendanceList) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _attendanceCacheKey,
+        jsonEncode(
+            attendanceList.map((attendance) => attendance.toJson()).toList()),
+      );
+    } catch (e) {
+      debugPrint('Failed to cache attendance data: $e');
+    }
+  }
+
+  Future<void> _loadInitialAttendanceData() async {
+    final hasCachedData = await _loadCachedAttendanceData();
+    await fetchAttendanceData(showLoading: !hasCachedData);
+  }
+
+  Future<void> fetchAttendanceData({bool showLoading = true}) async {
+    if (showLoading) {
+      setState(() => _isLoading = true);
+    }
+    try {
+      final start = DateTime.now();
+      final attendanceList = await _attendanceService.fetchAttendance();
+      debugPrint(
+        'Attendance API took: '
+        '${DateTime.now().difference(start).inMilliseconds} ms',
+      );
+      await _cacheAttendanceData(attendanceList);
+      if (!mounted) return;
+      setState(() {
+        _loadErrorMessage = null;
+        _applyAttendanceList(attendanceList);
       });
     } catch (e) {
       debugPrint('Failed to load attendance data: $e');
+      if (!mounted) return;
       setState(() {
         _loadErrorMessage = AppStrings.attendanceLoadError;
       });
@@ -226,6 +291,7 @@ class _AttendancePageState extends State<AttendancePage> {
         type: AppSnackBarType.error,
       );
     } finally {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -233,7 +299,7 @@ class _AttendancePageState extends State<AttendancePage> {
   @override
   void initState() {
     super.initState();
-    fetchAttendanceData();
+    _loadInitialAttendanceData();
     _searchController.addListener(_filterUsers);
   }
 
@@ -241,6 +307,7 @@ class _AttendancePageState extends State<AttendancePage> {
   void dispose() {
     _searchController.removeListener(_filterUsers);
     _searchController.dispose();
+    _attendanceScrollController.dispose();
     super.dispose();
   }
 
@@ -780,172 +847,294 @@ class _AttendancePageState extends State<AttendancePage> {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: isLoading
-            ? const SizedBox(
-                height: 18,
-                width: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColor.white),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          transitionBuilder: (child, animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            );
+          },
+          child: isLoading
+              ? const SizedBox(
+                  key: ValueKey('loading'),
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColor.white),
+                  ),
+                )
+              : Text(
+                  label,
+                  key: ValueKey(label),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
                 ),
-              )
-            : Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
+        ),
       ),
     );
   }
 
   Widget _buildReportButton(Attendance user) {
-    return ElevatedButton(
-      onPressed: () async {
-        try {
-          _reports ??=
-              await _attendanceService.fetchAllEmployeesAttendanceReport(
-            month: DateTime.now().month.toString().padLeft(2, '0'),
-            year: DateTime.now().year,
-          );
-
-          if (_reports == null || _reports!.isEmpty) {
-            showAppSnackBar(
-              message: AppStrings.noReportData,
-              type: AppSnackBarType.warning,
+    return Align(
+      alignment: Alignment.centerRight,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () async {
+          try {
+            _reports ??=
+                await _attendanceService.fetchAllEmployeesAttendanceReport(
+              month: DateTime.now().month.toString().padLeft(2, '0'),
+              year: DateTime.now().year,
             );
-            return;
-          }
 
-          final targetName =
-              widget.isAdmin ? user.name : widget.currentUserName;
+            if (_reports == null || _reports!.isEmpty) {
+              showAppSnackBar(
+                message: AppStrings.noReportData,
+                type: AppSnackBarType.warning,
+              );
+              return;
+            }
 
-          final userReport = _reports!.firstWhere(
-            (report) =>
-                report.employeeName.toLowerCase() == targetName.toLowerCase(),
-            orElse: () => widget.isAdmin
-                ? AttendanceReport(
-                    employeeId: 0,
-                    employeeName: user.name,
-                    month: DateTime.now().month.toString().padLeft(2, '0'),
-                    year: DateTime.now().year,
-                    daysPresent: 0,
-                    totalHours: '00:00:00',
-                    fullLeaveDays: 0,
-                    halfLeaveDays: 0,
-                    wfhDays: 0,
-                    department: '',
-                    totalLunchDuration: '',
-                  )
-                : throw Exception('Report not found for $targetName'),
-          );
+            final targetName =
+                widget.isAdmin ? user.name : widget.currentUserName;
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => UserReportPage(
-                attendanceReport: userReport,
-                currentUserName: targetName,
+            final userReport = _reports!.firstWhere(
+              (report) =>
+                  report.employeeName.toLowerCase() == targetName.toLowerCase(),
+              orElse: () => widget.isAdmin
+                  ? AttendanceReport(
+                      employeeId: 0,
+                      employeeName: user.name,
+                      month: DateTime.now().month.toString().padLeft(2, '0'),
+                      year: DateTime.now().year,
+                      daysPresent: 0,
+                      totalHours: '00:00:00',
+                      fullLeaveDays: 0,
+                      halfLeaveDays: 0,
+                      wfhDays: 0,
+                      department: '',
+                      totalLunchDuration: '',
+                    )
+                  : throw Exception('Report not found for $targetName'),
+            );
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserReportPage(
+                  attendanceReport: userReport,
+                  currentUserName: targetName,
+                ),
               ),
-            ),
-          );
-        } catch (e) {
-          debugPrint(
-            'Unable to load report: $e',
-          );
-          _reports = null;
-          showAppSnackBar(
-            message: AppStrings.reportLoadError,
-            type: AppSnackBarType.error,
-          );
-        }
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColor.primary,
-        foregroundColor: AppColor.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 12,
-        ),
-        elevation: 2,
-        minimumSize: const Size(double.infinity, 0),
-      ),
-      child: const Text(
-        'View Report',
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
+            );
+          } catch (e) {
+            debugPrint(
+              'Unable to load report: $e',
+            );
+            _reports = null;
+            showAppSnackBar(
+              message: AppStrings.reportLoadError,
+              type: AppSnackBarType.error,
+            );
+          }
+        },
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Monthly Report',
+                style: TextStyle(
+                  color: AppColor.primary,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+              SizedBox(width: 4),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: AppColor.primary,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTimeline(Attendance user) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColor.listBackground,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        children: [
-          _buildTimelineItem(
-            label: "Check In",
-            time: user.checkIn,
-            color: AppColor.green,
-          ),
-          const SizedBox(height: 12),
-          _buildTimelineItem(
-            label: "Lunch Out",
-            time: user.lunchOut,
-            color: AppColor.orange,
-          ),
-          const SizedBox(height: 12),
-          _buildTimelineItem(
-            label: "Lunch In",
-            time: user.lunchIn,
-            color: AppColor.blue,
-          ),
-          const SizedBox(height: 12),
-          _buildTimelineItem(
-            label: "Check Out",
-            time: user.checkOut,
-            color: AppColor.red,
-          ),
-        ],
-      ),
+  int _attendanceProgressCount(Attendance user) {
+    return [
+      user.checkIn,
+      user.lunchOut,
+      user.lunchIn,
+      user.checkOut,
+    ].where((time) => time != null).length;
+  }
+
+  Widget _buildAttendanceJourney(Attendance user) {
+    final labels = ['Check In', 'Lunch Out', 'Lunch In', 'Check Out'];
+    final times = [
+      user.checkIn,
+      user.lunchOut,
+      user.lunchIn,
+      user.checkOut,
+    ];
+    final completedSteps = _attendanceProgressCount(user);
+    final activeColor = _attendanceStatusColor(user);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // const Text(
+        //   'Attendance Journey',
+        //   style: TextStyle(
+        //     fontSize: 13,
+        //     fontWeight: FontWeight.w700,
+        //     color: AppColor.black87,
+        //   ),
+        // ),
+        // const SizedBox(height: 10),
+        Row(
+          children: [
+            for (int index = 0; index < labels.length; index++) ...[
+              _buildJourneyDot(
+                isComplete: index < completedSteps,
+                color: activeColor,
+              ),
+              if (index != labels.length - 1)
+                Expanded(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    height: 2,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    color: index < completedSteps - 1
+                        ? activeColor
+                        : AppColor.grey.withOpacity(0.35),
+                  ),
+                ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (final label in labels)
+              Expanded(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.black54,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            for (final time in times)
+              Expanded(
+                child: Text(
+                  _formatShortTimeWithPeriod(time),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: time == null ? AppColor.grey : AppColor.black87,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildTimelineItem({
-    required String label,
-    required DateTime? time,
+  Widget _buildJourneyDot({
+    required bool isComplete,
     required Color color,
   }) {
-    final isPending = time == null;
-    return Row(
-      children: [
-        Icon(
-          isPending ? Icons.radio_button_unchecked : Icons.check_circle,
-          size: 18,
-          color: isPending ? AppColor.grey : color,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        color: isComplete ? color : AppColor.white,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isComplete ? color : AppColor.grey.withOpacity(0.7),
+          width: 2,
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColor.black87,
-            ),
+      ),
+      child: isComplete
+          ? const Icon(
+              Icons.check,
+              size: 12,
+              color: AppColor.white,
+            )
+          : null,
+    );
+  }
+
+  String _attendanceStatusLabel(Attendance user) {
+    if (user.checkOut != null) return 'Completed';
+    if (user.lunchIn != null) return 'Working';
+    if (user.lunchOut != null) return 'On Break';
+    if (user.checkIn != null) return 'Checked In';
+    return 'Not Started';
+  }
+
+  Color _attendanceStatusColor(Attendance user) {
+    if (user.checkOut != null) return AppColor.grey;
+    if (user.lunchIn != null) return AppColor.green;
+    if (user.lunchOut != null) return AppColor.orange;
+    if (user.checkIn != null) return AppColor.blue;
+    return AppColor.red;
+  }
+
+  Widget _buildStatusChip(Attendance user) {
+    final color = _attendanceStatusColor(user);
+    final label = _attendanceStatusLabel(user);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(scale: animation, child: child),
+        );
+      },
+      child: AnimatedContainer(
+        key: ValueKey(label),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: color.withOpacity(0.25)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: color,
           ),
         ),
-        _buildValueText(_formatShortTimeWithPeriod(time)),
-      ],
+      ),
     );
   }
 
@@ -1010,6 +1199,134 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
+  Widget _buildScrollableAttendanceList() {
+    final listView = ListView.builder(
+      controller: widget.isAdmin ? _attendanceScrollController : null,
+      itemCount: filteredUsers.length,
+      itemBuilder: (context, index) {
+        final user = filteredUsers[index];
+        return TweenAnimationBuilder<double>(
+          key: ValueKey('${user.name}_${user.checkIn}_${user.checkOut}'),
+          tween: Tween(begin: 0, end: 1),
+          duration: Duration(milliseconds: 280 + (index % 6) * 45),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 18 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(
+              vertical: 8,
+            ),
+            decoration: BoxDecoration(
+              color: AppColor.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColor.black.withOpacity(0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    user.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.black87,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildStatusChip(user),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatAttendanceDate(user),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: AppColor.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildAttendanceJourney(user),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildInfoRow(
+                          icon: Icons.access_time,
+                          color: AppColor.green,
+                          label: "Worked",
+                          value: formatDuration(user.totalHours),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildInfoRow(
+                          icon: Icons.lunch_dining,
+                          color: AppColor.orange,
+                          label: "Break",
+                          value: formatDuration(
+                            user.lunchDurationDisplay,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (!widget.isAdmin) _buildActionButton(user, index),
+                  const SizedBox(height: 8),
+                  _buildReportButton(user),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (!widget.isAdmin) return listView;
+
+    return Scrollbar(
+      controller: _attendanceScrollController,
+      interactive: true,
+      thumbVisibility: false,
+      radius: const Radius.circular(20),
+      thickness: 4,
+      child: listView,
+    );
+  }
+
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
@@ -1032,9 +1349,7 @@ class _AttendancePageState extends State<AttendancePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.isAdmin
-                ? "Team Attendance Overview"
-                : "Your Attendance Tracker",
+            widget.isAdmin ? "Team Attendance Overview" : "Attendance Overview",
             style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -1134,103 +1449,7 @@ class _AttendancePageState extends State<AttendancePage> {
                       ),
                     ),
                   )
-                : ListView.builder(
-                    itemCount: filteredUsers.length,
-                    itemBuilder: (context, index) {
-                      final user = filteredUsers[index];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColor.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColor.black.withOpacity(0.05),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: AppColor.primary,
-                                    child: Text(
-                                      (user.name.trim().isNotEmpty
-                                              ? user.name.trim()[0]
-                                              : '?')
-                                          .toUpperCase(),
-                                      style: const TextStyle(
-                                        color: AppColor.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          user.name,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColor.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _formatAttendanceDate(user),
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColor.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              _buildTimeline(user),
-                              const SizedBox(height: 16),
-                              _buildInfoRow(
-                                icon: Icons.lunch_dining,
-                                color: AppColor.orange,
-                                label: "Break",
-                                value:
-                                    formatDuration(user.lunchDurationDisplay),
-                              ),
-                              const SizedBox(height: 8),
-                              _buildInfoRow(
-                                icon: Icons.access_time,
-                                color: AppColor.green,
-                                label: "Worked",
-                                value: formatDuration(user.totalHours),
-                              ),
-                              const SizedBox(height: 5),
-                              if (!widget.isAdmin)
-                                _buildActionButton(user, index),
-                              const SizedBox(height: 16),
-                              _buildReportButton(user),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                : _buildScrollableAttendanceList(),
           ),
         ],
       ),
@@ -1239,6 +1458,9 @@ class _AttendancePageState extends State<AttendancePage> {
 
   @override
   Widget build(BuildContext context) {
+    final showFab =
+        !widget.isAdmin && (!_hasCheckedInToday || _canShowFabAfter15Min());
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -1264,28 +1486,44 @@ class _AttendancePageState extends State<AttendancePage> {
         ),
         child: _buildBody(),
       ),
-      floatingActionButton:
-          // !widget.isAdmin && !_hasCheckedInToday
-          !widget.isAdmin && (!_hasCheckedInToday || _canShowFabAfter15Min())
-              ? FloatingActionButton(
-                  onPressed: (_isActionLoading || _isCreateRecordLoading)
-                      ? null
-                      : createAttendanceRecord,
-                  backgroundColor: AppColor.primary,
-                  tooltip: 'Create Attendance Record',
-                  child: _isCreateRecordLoading
-                      ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(AppColor.orange),
-                          ),
-                        )
-                      : const Icon(Icons.add, color: AppColor.orange),
-                )
-              : null,
+      floatingActionButton: AnimatedScale(
+        scale: showFab ? 1 : 0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutBack,
+        child: AnimatedOpacity(
+          opacity: showFab ? 1 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: IgnorePointer(
+            ignoring: !showFab,
+            child: FloatingActionButton(
+              onPressed: (_isActionLoading || _isCreateRecordLoading)
+                  ? null
+                  : createAttendanceRecord,
+              backgroundColor: AppColor.primary,
+              tooltip: 'Create Attendance Record',
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: _isCreateRecordLoading
+                    ? const SizedBox(
+                        key: ValueKey('fab_loading'),
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(AppColor.orange),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.add,
+                        key: ValueKey('fab_add'),
+                        color: AppColor.orange,
+                      ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -1295,25 +1533,35 @@ class _AttendancePageState extends State<AttendancePage> {
     required String label,
     required String value,
   }) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: color,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          "$label:",
-          style: const TextStyle(
-            fontSize: 14,
-            color: AppColor.black87,
-            fontWeight: FontWeight.w500,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: color,
           ),
-        ),
-        const SizedBox(width: 6),
-        _buildValueText(value),
-      ],
+          const SizedBox(width: 8),
+          Text(
+            "$label:",
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColor.black87,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 6),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: KeyedSubtree(
+              key: ValueKey('$label$value'),
+              child: _buildValueText(value),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

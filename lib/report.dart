@@ -368,8 +368,8 @@ class _UserReportPageState extends State<UserReportPage> {
                                 onTap: _showMonthPicker,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                    horizontal: 16,
+                                    vertical: 12,
+                                    horizontal: 14,
                                   ),
                                   decoration: BoxDecoration(
                                     color: AppColor.white,
@@ -377,8 +377,8 @@ class _UserReportPageState extends State<UserReportPage> {
                                     boxShadow: [
                                       BoxShadow(
                                         color: AppColor.black.withOpacity(0.1),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
                                       ),
                                     ],
                                   ),
@@ -422,8 +422,8 @@ class _UserReportPageState extends State<UserReportPage> {
                                 onTap: _showYearPicker,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                    horizontal: 16,
+                                    vertical: 12,
+                                    horizontal: 14,
                                   ),
                                   decoration: BoxDecoration(
                                     color: AppColor.white,
@@ -431,8 +431,8 @@ class _UserReportPageState extends State<UserReportPage> {
                                     boxShadow: [
                                       BoxShadow(
                                         color: AppColor.black.withOpacity(0.1),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
                                       ),
                                     ],
                                   ),
@@ -472,12 +472,12 @@ class _UserReportPageState extends State<UserReportPage> {
                       const SizedBox(height: 20),
                       _hasNoData(_currentReport)
                           ? Card(
-                              elevation: 2,
+                              elevation: 1,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(24.0),
+                                padding: const EdgeInsets.all(18.0),
                                 child: Column(
                                   children: [
                                     const Icon(
@@ -509,111 +509,7 @@ class _UserReportPageState extends State<UserReportPage> {
                                 ),
                               ),
                             )
-                          : Card(
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(24.0),
-                                child: Column(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 50,
-                                      backgroundColor: AppColor.primary,
-                                      child: Text(
-                                        (_currentReport?.employeeName ??
-                                                widget.currentUserName)[0]
-                                            .toUpperCase(),
-                                        style: const TextStyle(
-                                          fontSize: 36,
-                                          color: AppColor.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      _currentReport?.employeeName ??
-                                          widget.currentUserName,
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColor.black87,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    if (_currentReport?.department.isNotEmpty ??
-                                        false)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 8),
-                                        child: Text(
-                                          _currentReport!.department,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            color: AppColor.black54,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    const SizedBox(height: 24),
-                                    _buildReportItem(
-                                      icon: Icons.check_circle,
-                                      color: AppColor.green[700]!,
-                                      label: "Days Present",
-                                      value: (_currentReport?.daysPresent ?? 0)
-                                          .toString(),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _buildReportItem(
-                                      icon: Icons.access_time,
-                                      color: AppColor.orange[700]!,
-                                      label: "Worked",
-                                      value: _formatDuration(
-                                        _currentReport?.totalHours ??
-                                            '00:00:00',
-                                      ),
-                                    ),
-                                    // const SizedBox(height: 16),
-                                    // _buildReportItem(
-                                    //   icon: Icons.home_work,
-                                    //   color: AppColor.purpleMaterial[700]!,
-                                    //   label: "Work From Home",
-                                    //   value: (_currentReport?.wfhDays ?? 0)
-                                    //       .toString(),
-                                    // ),
-                                    const SizedBox(height: 16),
-                                    _buildReportItem(
-                                      icon: Icons.timelapse,
-                                      color: AppColor.teal[700]!,
-                                      label: "Half Days",
-                                      value:
-                                          (_currentReport?.halfLeaveDays ?? 0)
-                                              .toString(),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _buildReportItem(
-                                      icon: Icons.event_busy,
-                                      color: AppColor.red[700]!,
-                                      label: "Full Leave Days",
-                                      value:
-                                          (_currentReport?.fullLeaveDays ?? 0)
-                                              .toString(),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _buildReportItem(
-                                      icon: Icons.lunch_dining,
-                                      color: AppColor.blueGrey,
-                                      label: "Break",
-                                      value: _formatDuration(
-                                        _currentReport?.totalLunchDuration ??
-                                            '00:00:00',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                          : _buildPerformanceReport(),
                       const SizedBox(height: 32),
                       ElevatedButton.icon(
                         onPressed: () => Navigator.pop(context),
@@ -644,46 +540,236 @@ class _UserReportPageState extends State<UserReportPage> {
     );
   }
 
-  Widget _buildReportItem({
+  Widget _buildPerformanceReport() {
+    final report = _currentReport;
+    final employeeName = report?.employeeName ?? widget.currentUserName;
+    final monthYear = '${_getMonthName(_selectedMonth)} $_selectedYear';
+    final daysPresent = (report?.daysPresent ?? 0).toString();
+    final workedHours = _formatDuration(report?.totalHours ?? '00:00:00');
+    final halfDays = (report?.halfLeaveDays ?? 0).toString();
+    final leaveDays = (report?.fullLeaveDays ?? 0).toString();
+    final breakHours =
+        _formatDuration(report?.totalLunchDuration ?? '00:00:00');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSummaryCard(
+          employeeName: employeeName,
+          monthYear: monthYear,
+          daysPresent: daysPresent,
+          workedHours: workedHours,
+        ),
+        const SizedBox(height: 16),
+        GridView(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            mainAxisExtent: 122,
+          ),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _buildStatCard(
+              icon: Icons.check_circle,
+              color: AppColor.green[700]!,
+              value: daysPresent,
+              label: 'Present',
+            ),
+            _buildStatCard(
+              icon: Icons.access_time,
+              color: AppColor.orange[700]!,
+              value: workedHours,
+              label: 'Worked',
+            ),
+            _buildStatCard(
+              icon: Icons.timelapse,
+              color: AppColor.teal[700]!,
+              value: halfDays,
+              label: 'Half Day',
+            ),
+            _buildStatCard(
+              icon: Icons.event_busy,
+              color: AppColor.red[700]!,
+              value: leaveDays,
+              label: 'Leave',
+            ),
+            _buildStatCard(
+              icon: Icons.lunch_dining,
+              color: AppColor.blueGrey,
+              value: breakHours,
+              label: 'Break',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryCard({
+    required String employeeName,
+    required String monthYear,
+    required String daysPresent,
+    required String workedHours,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          colors: [
+            AppColor.primary,
+            AppColor.gradientEnd,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.black.withOpacity(0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            employeeName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: AppColor.white,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$monthYear Performance',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColor.white.withOpacity(0.88),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: _buildSummaryMetric(
+                  value: daysPresent,
+                  label: 'Days Present',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildSummaryMetric(
+                  value: workedHours,
+                  label: 'Hours Worked',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryMetric({
+    required String value,
+    required String label,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColor.white,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColor.white.withOpacity(0.82),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
     required IconData icon,
     required Color color,
     required String label,
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColor.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: color.withOpacity(0.12),
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColor.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: AppColor.black87,
-              ),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
+            child: Icon(icon, color: color, size: 19),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.black87,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.black54,
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -762,20 +762,30 @@ class _ApplyLeaveState extends State<ApplyLeave> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    widget.userRole == 'admin'
-                        ? 'No leave applications available.'
-                        : 'No leave applications found.',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: AppColor.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+              child: Padding(
+  padding: const EdgeInsets.all(24.0),
+  child: Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(
+        Icons.event_busy_rounded,
+        size: 56,
+        color: AppColor.secondaryText.withOpacity(0.5),
+      ),
+      const SizedBox(height: 12),
+      Text(
+        widget.userRole == 'admin'
+            ? 'No Leave Requests'
+            : 'No Leaves Found',
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: AppColor.primary,
+        ),
+      ),
+    ],
+  ),
+),
               ),
             );
           }
@@ -852,8 +862,8 @@ class _ApplyLeaveState extends State<ApplyLeave> {
         boxShadow: [
           BoxShadow(
             color: AppColor.primary.withOpacity(0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -1408,47 +1418,58 @@ class _ApplyLeaveState extends State<ApplyLeave> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Leave Applications',
-          style: TextStyle(fontWeight: FontWeight.bold, color: AppColor.white),
-        ),
-        backgroundColor: AppColor.primary,
-      ),
-      backgroundColor: AppColor.scaffoldBackground,
-      body: SafeArea(
-        child: _showForm
-            ? (widget.userRole == 'employee'
-                ? _buildLeaveForm()
-                : _buildAdminWarning())
-            : Column(
-                children: [
-                  if (widget.userRole == 'admin') _buildLeaveStats(),
-                  if (_showFilter) _buildFilterUI(),
-                  SearchFilterBar(
-                    controller: _searchController,
-                    hintText: widget.userRole == 'admin'
-                        ? 'Search by employee, type, or date'
-                        : 'Search by type, status, or date',
-                    onChanged: _onSearchChanged,
-                    showFilter: _showFilter,
-                    onFilterPressed: _showFilterDialog,
-                  ),
-                  _isFetching
-                      ? const Expanded(
-                          child: Center(child: CircularProgressIndicator()),
-                        )
-                      : _buildLeaveList(),
-                ],
-              ),
-      ),
-      floatingActionButton: _showForm || widget.userRole != 'employee'
-          ? null
-          : FloatingActionButton(
-              onPressed: () => setState(() => _showForm = true),
-              backgroundColor: AppColor.primary,
-              child: const Icon(Icons.add, color: AppColor.orange),
+        appBar: AppBar(
+          title: Text(
+            widget.userRole == 'admin'
+                ? 'Leave Applications (${_leaveRequests.length})'
+                : 'Leave Applications',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColor.white,
             ),
-    );
+          ),
+          backgroundColor: AppColor.primary,
+        ),
+        backgroundColor: AppColor.scaffoldBackground,
+        body: SafeArea(
+          child: _showForm
+              ? (widget.userRole == 'employee'
+                  ? _buildLeaveForm()
+                  : _buildAdminWarning())
+              : Column(
+                  children: [
+                    if (widget.userRole == 'admin') _buildLeaveStats(),
+                    if (_showFilter) _buildFilterUI(),
+                    SearchFilterBar(
+                      controller: _searchController,
+                      hintText: widget.userRole == 'admin'
+                          ? 'Search by employee, type, or date'
+                          : 'Search by type, status, or date',
+                      onChanged: _onSearchChanged,
+                      showFilter: _showFilter,
+                      onFilterPressed: _showFilterDialog,
+                    ),
+                    _isFetching
+                        ? const Expanded(
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        : _buildLeaveList(),
+                  ],
+                ),
+        ),
+        floatingActionButton: _showForm || widget.userRole != 'employee'
+            ? null
+            : FloatingActionButton.extended(
+                onPressed: () => setState(() => _showForm = true),
+                backgroundColor: AppColor.primary,
+                foregroundColor: AppColor.white,
+                icon: const Icon(Icons.add),
+                label: const Text(
+                  'Apply Leave',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ));
   }
 }

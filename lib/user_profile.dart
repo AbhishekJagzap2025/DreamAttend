@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'controller/app_constants.dart';
 import 'main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,6 +38,8 @@ class _UserProfileState extends State<UserProfile> {
   String _imagePath = 'assets/images/default.png';
   bool isEditing = false;
   File? _selectedImage;
+  Uint8List? _cachedImageBytes;
+  bool _isProfileLoading = true;
 
   late String _name;
   late String _address;
@@ -58,14 +61,43 @@ class _UserProfileState extends State<UserProfile> {
     _loadEmployeeProfile();
   }
 
+  void _setImagePath(String imagePath) {
+    _imagePath = imagePath;
+    _selectedImage = null;
+    _cachedImageBytes = null;
+    if (!_imagePath.startsWith('assets/') && !_imagePath.startsWith('http')) {
+      try {
+        _cachedImageBytes = base64Decode(_imagePath);
+      } catch (e) {
+        debugPrint('Failed to decode profile image: $e');
+        _imagePath = 'assets/images/default.png';
+      }
+    }
+  }
+
+  ImageProvider _profileImageProvider() {
+    if (_selectedImage != null) {
+      return FileImage(_selectedImage!);
+    }
+    if (_imagePath.startsWith('assets/')) {
+      return AssetImage(_imagePath);
+    }
+    if (_imagePath.startsWith('http')) {
+      return NetworkImage(_imagePath);
+    }
+    if (_cachedImageBytes != null) {
+      return MemoryImage(_cachedImageBytes!);
+    }
+    return const AssetImage('assets/images/default.png');
+  }
+
   Future<void> _loadSavedImage() async {
     final prefs = await SharedPreferences.getInstance();
     final savedImage = prefs.getString('profile_image_${widget.numericId}');
     if (savedImage != null && savedImage.isNotEmpty) {
       if (!mounted) return;
       setState(() {
-        _imagePath = savedImage;
-        _selectedImage = null;
+        _setImagePath(savedImage);
       });
     }
   }
@@ -86,24 +118,31 @@ class _UserProfileState extends State<UserProfile> {
         if (savedImage == null &&
             employeeData.image != null &&
             employeeData.image!.isNotEmpty) {
-          _imagePath = employeeData.image!;
-          _selectedImage = null;
+          _setImagePath(employeeData.image!);
           prefs.setString('profile_image_${widget.numericId}', _imagePath);
         }
+        _isProfileLoading = false;
       });
     } catch (e) {
-      print('Error fetching employee profile: $e');
+      debugPrint('Error fetching employee profile: $e');
+      if (!mounted) return;
+      setState(() => _isProfileLoading = false);
     }
   }
 
   Future<void> _pickImage(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: source);
+    final XFile? image = await picker.pickImage(
+      source: source,
+      imageQuality: 70,
+      maxWidth: 800,
+    );
 
     if (image != null) {
       if (!mounted) return;
       setState(() {
         _selectedImage = File(image.path);
+        _cachedImageBytes = null;
       });
     }
   }
@@ -367,11 +406,9 @@ class _UserProfileState extends State<UserProfile> {
         _mobile = response.mobile ?? _mobile;
         _address = response.address ?? _address;
         if (imageBase64 != null) {
-          _imagePath = imageBase64;
-          _selectedImage = null;
+          _setImagePath(imageBase64);
         } else if (response.image != null && response.image!.isNotEmpty) {
-          _imagePath = response.image!;
-          _selectedImage = null;
+          _setImagePath(response.image!);
         }
       });
 
@@ -567,6 +604,7 @@ class _UserProfileState extends State<UserProfile> {
       ),
       body: Column(
         children: [
+          if (_isProfileLoading) const LinearProgressIndicator(),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
             child: Container(
@@ -606,14 +644,7 @@ class _UserProfileState extends State<UserProfile> {
                           ),
                           child: CircleAvatar(
                             radius: 58,
-                            backgroundImage: _selectedImage != null
-                                ? FileImage(_selectedImage!)
-                                : _imagePath.startsWith('assets/')
-                                    ? AssetImage(_imagePath)
-                                    : _imagePath.startsWith('http')
-                                        ? NetworkImage(_imagePath)
-                                        : MemoryImage(base64Decode(_imagePath))
-                                            as ImageProvider,
+                            backgroundImage: _profileImageProvider(),
                           ),
                         ),
                         if (isEditing)

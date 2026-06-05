@@ -399,7 +399,7 @@ class _ContractsPageState extends State<ContractsPage> {
         MaterialPageRoute(
           builder: (context) => Scaffold(
             appBar: AppBar(
-              title: Text(detailedContract.name),
+              title: Text(detailedContract.employeeName),
               backgroundColor: AppColor.primary,
               foregroundColor: AppColor.white,
               elevation: 0,
@@ -414,149 +414,84 @@ class _ContractsPageState extends State<ContractsPage> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildDetailRow(
-                              'Employee',
-                              detailedContract.employeeName,
-                              Icons.person_outline,
-                            ),
-                            _buildDetailRow(
-                              'State',
-                              detailedContract.state == 'draft'
-                                  ? 'New'
-                                  : detailedContract.state == 'open'
-                                      ? 'Running'
-                                      : detailedContract.state,
-                              Icons.flag_outlined,
-                              isState: true,
-                            ),
-                            _buildDetailRow(
-                              'Start Date',
-                              detailedContract.dateStart != null
-                                  ? DateFormat('dd MMM yyyy')
-                                      .format(detailedContract.dateStart!)
-                                  : 'N/A',
-                              Icons.calendar_today_outlined,
-                            ),
-                            _buildDetailRow(
-                              'End Date',
-                              detailedContract.dateEnd != null
-                                  ? DateFormat('dd MMM yyyy')
-                                      .format(detailedContract.dateEnd!)
-                                  : 'N/A',
-                              Icons.calendar_today_outlined,
-                            ),
-                            _buildDetailRow(
-                              'Wage',
-                              '₹${detailedContract.wage.toStringAsFixed(2)}',
-                              Icons.attach_money_outlined,
-                            ),
-                            _buildDetailRow(
-                              'Schedule',
-                              detailedContract.schedulePay ?? 'N/A',
-                              Icons.schedule_outlined,
-                            ),
-                          ],
+                    _buildDetailSection(
+                      title: 'Contract Overview',
+                      children: [
+                        _buildDetailRow(
+                          'Employee',
+                          detailedContract.employeeName,
+                          Icons.person_outline,
                         ),
-                      ),
+                        _buildDetailRow(
+                          'Status',
+                          _contractStatusLabel(detailedContract.state),
+                          Icons.flag_outlined,
+                          isState: true,
+                        ),
+                        _buildDetailRow(
+                          'Contract Type',
+                          _contractTypeLabel(detailedContract),
+                          Icons.category_outlined,
+                        ),
+                        _buildDetailRow(
+                          'Salary Structure',
+                          detailedContract.structName ?? 'N/A',
+                          Icons.account_balance_wallet_outlined,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Allowances',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColor.primary,
-                                  ),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildAllowanceRow(
-                              'HRA',
-                              detailedContract.hra?.toStringAsFixed(2) ??
-                                  '0.00',
-                            ),
-                            _buildAllowanceRow(
-                              'DA',
-                              detailedContract.da?.toStringAsFixed(2) ?? '0.00',
-                            ),
-                            _buildAllowanceRow(
-                              'Travel',
-                              detailedContract.travelAllowance
-                                      ?.toStringAsFixed(2) ??
-                                  '0.00',
-                            ),
-                            _buildAllowanceRow(
-                              'Meal',
-                              detailedContract.mealAllowance
-                                      ?.toStringAsFixed(2) ??
-                                  '0.00',
-                            ),
-                            _buildAllowanceRow(
-                              'Medical',
-                              detailedContract.medicalAllowance
-                                      ?.toStringAsFixed(2) ??
-                                  '0.00',
-                            ),
-                            _buildAllowanceRow(
-                              'Overtime Rate',
-                              '${detailedContract.overtimeRate?.toStringAsFixed(2) ?? '0.00'}/hr',
-                            ),
-                            _buildAllowanceRow(
-                              'Other',
-                              detailedContract.otherAllowance
-                                      ?.toStringAsFixed(2) ??
-                                  '0.00',
-                            ),
-                          ],
+                    _buildDetailSection(
+                      title: 'Compensation',
+                      children: [
+                        _buildDetailRow(
+                          'Wage',
+                          _formatCurrency(detailedContract.wage),
+                          Icons.payments_outlined,
                         ),
-                      ),
+                        _buildAllowanceRow('HRA', detailedContract.hra),
+                        _buildAllowanceRow('DA', detailedContract.da),
+                        _buildAllowanceRow(
+                          'Travel',
+                          detailedContract.travelAllowance,
+                        ),
+                        _buildAllowanceRow(
+                            'Meal', detailedContract.mealAllowance),
+                        _buildAllowanceRow(
+                          'Medical',
+                          detailedContract.medicalAllowance,
+                        ),
+                        _buildAllowanceRow(
+                          'Overtime Rate',
+                          detailedContract.overtimeRate,
+                          suffix: '/hr',
+                        ),
+                        _buildAllowanceRow(
+                            'Other', detailedContract.otherAllowance),
+                      ],
                     ),
                     const SizedBox(height: 16),
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildDetailRow(
-                              'Type',
-                              detailedContract.typeName ?? 'N/A',
-                              Icons.category_outlined,
-                            ),
-                            _buildDetailRow(
-                              'Salary Structure',
-                              detailedContract.structName ?? 'N/A',
-                              Icons.account_balance_wallet_outlined,
-                            ),
-                          ],
+                    _buildDetailSection(
+                      title: 'Employment',
+                      children: [
+                        _buildDetailRow(
+                          'Start Date',
+                          _formatContractDate(detailedContract.dateStart),
+                          Icons.calendar_today_outlined,
                         ),
-                      ),
+                        _buildDetailRow(
+                          'End Date',
+                          _formatContractDate(detailedContract.dateEnd),
+                          Icons.event_outlined,
+                        ),
+                        _buildDetailRow(
+                          'Schedule',
+                          detailedContract.schedulePay ?? 'N/A',
+                          Icons.schedule_outlined,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     if (detailedContract.state == 'draft')
@@ -599,6 +534,82 @@ class _ContractsPageState extends State<ContractsPage> {
         fallback: 'Unable to load contract details right now.',
       );
     }
+  }
+
+  String _contractStatusLabel(String state) {
+    if (state == 'draft') return 'New';
+    if (state == 'open') return 'Running';
+    return state;
+  }
+
+  Color _contractStatusColor(String state) {
+    return state == 'draft' ? AppColor.orange : AppColor.green;
+  }
+
+  String _contractTypeLabel(Contract contract) {
+    final typeName = contract.typeName?.trim();
+    if (typeName != null && typeName.isNotEmpty) return typeName;
+    return 'Permanent Contract';
+  }
+
+  String _formatCurrency(num? value, {String suffix = ''}) {
+    return 'Rs ${(value ?? 0).toStringAsFixed(2)}$suffix';
+  }
+
+  String _formatContractDate(DateTime? date) {
+    return date != null ? DateFormat('dd MMM yyyy').format(date) : 'N/A';
+  }
+
+  Widget _buildStatusChip(String state) {
+    final color = _contractStatusColor(state);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.55)),
+      ),
+      child: Text(
+        _contractStatusLabel(state),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailSection({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColor.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildDetailRow(String label, String value, IconData icon,
@@ -648,7 +659,7 @@ class _ContractsPageState extends State<ContractsPage> {
     );
   }
 
-  Widget _buildAllowanceRow(String label, String value) {
+  Widget _buildAllowanceRow(String label, num? value, {String suffix = ''}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -662,7 +673,7 @@ class _ContractsPageState extends State<ContractsPage> {
             ),
           ),
           Text(
-            '₹$value',
+            _formatCurrency(value, suffix: suffix),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -1397,21 +1408,18 @@ class _ContractsPageState extends State<ContractsPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(height: 24),
+                        Icon(
+                          Icons.description_outlined,
+                          size: 64,
+                          color: AppColor.grey,
+                        ),
+                        SizedBox(height: 16),
                         Text(
                           'No Contracts Found',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
                             color: AppColor.primary,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Add a new contract to get started',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColor.grey,
                           ),
                         ),
                       ],
@@ -1452,136 +1460,110 @@ class _ContractsPageState extends State<ContractsPage> {
                                 itemCount: filteredContracts.length,
                                 itemBuilder: (context, index) {
                                   final contract = filteredContracts[index];
-                                  return Card(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    elevation: 2,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(12),
-                                      onTap: () =>
-                                          _showContractDetails(contract),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    contract.name,
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: const TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: AppColor.primary,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 12),
-                                                Flexible(
-                                                  child: Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 6,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: contract.state ==
-                                                              'draft'
-                                                          ? AppColor.orange[50]
-                                                          : AppColor.green[50],
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                        16,
-                                                      ),
-                                                      border: Border.all(
-                                                        color: contract.state ==
-                                                                'draft'
-                                                            ? AppColor.orange
-                                                            : AppColor.green,
-                                                        width: 1,
-                                                      ),
-                                                    ),
-                                                    child: Text(
-                                                      contract.state == 'draft'
-                                                          ? 'NEW'
-                                                          : contract.state ==
-                                                                  'open'
-                                                              ? 'RUNNING'
-                                                              : contract.state
-                                                                  .toUpperCase(),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: contract.state ==
-                                                                'draft'
-                                                            ? AppColor
-                                                                .orange[800]
-                                                            : AppColor
-                                                                .green[800],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 12),
-                                            Text(
-                                              contract.employeeName,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                color: AppColor.black87,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            Row(
-                                              children: [
-                                                _buildContractDate(
-                                                  icon: Icons
-                                                      .calendar_today_outlined,
-                                                  label: 'Start',
-                                                  date: contract.dateStart,
-                                                ),
-                                                const SizedBox(width: 24),
-                                                _buildContractDate(
-                                                  icon: Icons
-                                                      .calendar_today_outlined,
-                                                  label: 'End',
-                                                  date: contract.dateEnd,
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
+                                  return _buildContractCard(contract);
                                 },
                               ),
                       ),
                     ],
                   ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddContractScreen,
         backgroundColor: AppColor.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+        foregroundColor: AppColor.white,
+        icon: const Icon(Icons.add),
+        label: const Text(
+          'Create Contract',
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        child: const Icon(Icons.add, size: 28),
+      ),
+    );
+  }
+
+  Widget _buildContractCard(Contract contract) {
+    final statusColor = _contractStatusColor(contract.state);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _showContractDetails(contract),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 5, color: statusColor),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  contract.employeeName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColor.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _contractTypeLabel(contract),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColor.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatusChip(contract.state),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildContractDate(
+                              icon: Icons.calendar_today_outlined,
+                              label: 'Start',
+                              date: contract.dateStart,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildContractDate(
+                              icon: Icons.event_outlined,
+                              label: 'End',
+                              date: contract.dateEnd,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

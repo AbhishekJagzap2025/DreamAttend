@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:flutter/services.dart';
-import 'Constant/app_color.dart';
+
+import '/services/holiday_service.dart';
+import '/models/holiday_model.dart';
+
+/// 🎨 Professional Color Palette
+class CalendarColors {
+  static const Color primaryBlue = Color(0xFF0B4A5E);
+  static const Color accentTeal = Color(0xFF00897B);
+  static const Color lightBackground = Color(0xFFF8FAFC);
+  static const Color cardBackground = Colors.white;
+
+  static const Color textDark = Color(0xFF2D3748);
+  static const Color textLight = Color(0xFF718096);
+
+  static const Color holidayRed = Color(0xFFE53E3E);
+  static const Color successGreen = Color(0xFF38A169);
+}
 
 class Holidays extends StatefulWidget {
   const Holidays({super.key});
@@ -10,46 +25,44 @@ class Holidays extends StatefulWidget {
   State<Holidays> createState() => _HolidaysState();
 }
 
-class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
+class _HolidaysState extends State<Holidays>
+    with SingleTickerProviderStateMixin {
   final CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
 
-  final Map<DateTime, List<String>> _events = {
-    DateTime(2025, 1, 1): ["New Year's Day"],
-    DateTime(2025, 1, 26): ['Republic Day'],
-    DateTime(2025, 3, 17): ['Holi'],
-    DateTime(2025, 3, 19): ['Shivjayanti'],
-    DateTime(2025, 8, 15): ['Independence Day'],
-    DateTime(2025, 10, 2): ['Gandhi Jayanti'],
-    DateTime(2025, 12, 25): ['Christmas Day'],
-  };
+  final HolidayService _holidayService = HolidayService();
+
+  Map<DateTime, bool> _holidayDates = {};
+  List<Holiday> _selectedDayHolidays = [];
+
+  bool _isLoadingCalendar = true;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-    _animationController.forward();
+    _loadHolidayDates();
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+  Future<void> _loadHolidayDates() async {
+    setState(() => _isLoadingCalendar = true);
+    final dates = await _holidayService.getHolidayCalendarDates();
+    if (mounted) {
+      setState(() {
+        _holidayDates = dates;
+        _isLoadingCalendar = false;
+      });
+    }
   }
 
-  DateTime _normalizeDate(DateTime date) {
-    return DateTime(date.year, date.month, date.day);
+  Future<void> _loadHolidaysForSelectedDay(DateTime day) async {
+    final holidays = await _holidayService.getHolidaysByDate(day);
+    if (mounted) {
+      setState(() => _selectedDayHolidays = holidays);
+    }
   }
+
+  DateTime _normalizeDate(DateTime d) => DateTime(d.year, d.month, d.day);
 
   @override
   Widget build(BuildContext context) {
@@ -57,22 +70,18 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
       backgroundColor: CalendarColors.lightBackground,
       body: CustomScrollView(
         slivers: [
-          _buildProfessionalAppBar(),
+          _buildAppBar(),
           SliverToBoxAdapter(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  _buildCalendarHeader(),
-                  const SizedBox(height: 20),
-                  _buildModernCalendarCard(),
-                  const SizedBox(height: 20),
-                  if (_selectedDay != null) _buildEventDetailsCard(),
-                  _buildUpcomingHolidaysCard(),
-                  const SizedBox(height: 32),
-                ],
-              ),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                _buildHeaderCard(),
+                const SizedBox(height: 20),
+                _buildCalendarCard(),
+                const SizedBox(height: 20),
+                if (_selectedDay != null) _buildHolidayDetailsCard(),
+                const SizedBox(height: 32),
+              ],
             ),
           ),
         ],
@@ -80,533 +89,306 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
     );
   }
 
-  // Widget _buildProfessionalAppBar() {
-  //   return SliverAppBar(
-  //     expandedHeight: 120,
-  //     floating: false,
-  //     pinned: true,
-  //     backgroundColor: CalendarColors.primaryBlue,
-  //     foregroundColor: AppColor.white,
-  //     elevation: 0,
-  Widget _buildProfessionalAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: false,
-      pinned: true,
-      backgroundColor: CalendarColors.primaryBlue,
-      foregroundColor: AppColor.white, // keeps icons white
-      elevation: 0,
+  // ───────────────── AppBar ─────────────────
 
-      titleTextStyle: const TextStyle(
-        color: AppColor.white,
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        title: const Text(
-          'Calendar & Holidays',
-          style: TextStyle(
-            color: AppColor.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
-        ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                CalendarColors.primaryBlue,
-                CalendarColors.primaryBlue.withOpacity(0.8),
-              ],
-            ),
-          ),
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      pinned: true,
+      elevation: 0,
+      backgroundColor: CalendarColors.primaryBlue,
+      centerTitle: true,
+      title: const Text(
+        'Calendar',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
         ),
       ),
       leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColor.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Icon(Icons.arrow_back, color: AppColor.white),
-        ),
+        icon: const Icon(Icons.arrow_back_ios_new, size: 18),
         onPressed: () => Navigator.pop(context),
       ),
     );
   }
 
-  Widget _buildCalendarHeader() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColor.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColor.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+  // ───────────────── Header Card ─────────────────
+
+  Widget _buildHeaderCard() {
+    return _card(
       child: Row(
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  CalendarColors.accentTeal,
-                  CalendarColors.accentTeal.withOpacity(0.7)
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: const Icon(
-              Icons.calendar_month,
-              color: AppColor.white,
-              size: 28,
-            ),
-          ),
+          _iconBox(Icons.today),
           const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getFormattedCurrentDate(),
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: CalendarColors.textDark,
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _getTodayDate(),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: CalendarColors.textDark,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${_getTotalHolidays()} holidays this year',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: CalendarColors.textLight,
-                    fontWeight: FontWeight.w500,
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _getTodayWeekday(),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: CalendarColors.textLight,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildModernCalendarCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: AppColor.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColor.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: TableCalendar(
-          firstDay: DateTime(2000),
-          lastDay: DateTime(2100),
-          focusedDay: _focusedDay,
-          calendarFormat: CalendarFormat.month,
-          availableCalendarFormats: const {
-            CalendarFormat.month: 'Month',
-          },
-          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-          onDaySelected: (selectedDay, focusedDay) {
-            HapticFeedback.lightImpact();
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-            });
-          },
-          eventLoader: (day) {
-            return _events[_normalizeDate(day)] ?? [];
-          },
-          calendarStyle: CalendarStyle(
-            todayDecoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  CalendarColors.accentTeal,
-                  CalendarColors.accentTeal.withOpacity(0.7)
-                ],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: CalendarColors.accentTeal.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+  // ───────────────── Calendar Card ─────────────────
+
+  Widget _buildCalendarCard() {
+    return _card(
+      child: _isLoadingCalendar
+          ? const Padding(
+              padding: EdgeInsets.all(40),
+              child: CircularProgressIndicator(),
+            )
+          : TableCalendar(
+              firstDay: DateTime(2000),
+              lastDay: DateTime(2100),
+              focusedDay: _focusedDay,
+              calendarFormat: _calendarFormat,
+              weekendDays: const [DateTime.saturday, DateTime.sunday],
+              availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              onDaySelected: (selected, focused) {
+                setState(() {
+                  _selectedDay = selected;
+                  _focusedDay = focused;
+                });
+                _loadHolidaysForSelectedDay(selected);
+              },
+              eventLoader: (day) =>
+                  _holidayDates[_normalizeDate(day)] == true ? ['H'] : [],
+              calendarStyle: const CalendarStyle(
+                weekendTextStyle:
+                    TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+                defaultTextStyle: TextStyle(color: CalendarColors.textDark),
+                todayDecoration: BoxDecoration(
+                  color: CalendarColors.accentTeal,
+                  shape: BoxShape.circle,
                 ),
-              ],
-            ),
-            selectedDecoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  CalendarColors.primaryBlue,
-                  CalendarColors.primaryBlue.withOpacity(0.8)
-                ],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: CalendarColors.primaryBlue.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+                selectedDecoration: BoxDecoration(
+                  color: CalendarColors.primaryBlue,
+                  shape: BoxShape.circle,
                 ),
-              ],
-            ),
-            markerDecoration: const BoxDecoration(
-              color: CalendarColors.successGreen,
-              shape: BoxShape.circle,
-            ),
-            holidayTextStyle: const TextStyle(
-              color: CalendarColors.holidayRed,
-              fontWeight: FontWeight.w600,
-            ),
-            weekendTextStyle: TextStyle(
-              color: CalendarColors.holidayRed.withOpacity(0.7),
-              fontWeight: FontWeight.w500,
-            ),
-            defaultTextStyle: const TextStyle(
-              color: CalendarColors.textDark,
-              fontWeight: FontWeight.w500,
-            ),
-            outsideTextStyle: TextStyle(
-              color: CalendarColors.textLight.withOpacity(0.6),
-            ),
-          ),
-          headerStyle: HeaderStyle(
-            titleTextStyle: const TextStyle(
-              color: CalendarColors.textDark,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-            formatButtonVisible: false,
-            leftChevronIcon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: CalendarColors.textLight.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                markerDecoration: BoxDecoration(
+                  color: CalendarColors.successGreen,
+                  shape: BoxShape.circle,
+                ),
               ),
-              child: const Icon(
-                Icons.chevron_left,
-                color: CalendarColors.textDark,
+              headerStyle: const HeaderStyle(
+                titleCentered: true,
+                formatButtonVisible: false,
               ),
-            ),
-            rightChevronIcon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: CalendarColors.textLight.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.chevron_right,
-                color: CalendarColors.textDark,
-              ),
-            ),
-            headerPadding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          calendarBuilders: CalendarBuilders(
-            defaultBuilder: (context, day, _) {
-              final normalizedDay = _normalizeDate(day);
-              if (_events.containsKey(normalizedDay)) {
-                return Container(
-                  margin: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        CalendarColors.successGreen,
-                        CalendarColors.successGreen.withOpacity(0.8)
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: CalendarColors.successGreen.withOpacity(0.3),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
+              calendarBuilders: CalendarBuilders(
+                defaultBuilder: (context, day, focusedDay) {
+                  if (day.weekday == DateTime.sunday) {
+                    return Center(
+                      child: Text(
+                        '${day.day}',
+                        style: const TextStyle(
+                          color: CalendarColors.holidayRed,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${day.day}',
-                      style: const TextStyle(
-                        color: AppColor.white,
-                        fontWeight: FontWeight.w600,
+                    );
+                  }
+
+                  final isHoliday = _holidayDates[_normalizeDate(day)] == true;
+                  if (isHoliday) {
+                    return Container(
+                      margin: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: CalendarColors.holidayRed.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: CalendarColors.holidayRed, width: 1),
                       ),
-                    ),
-                  ),
-                );
-              }
-              if (day.weekday == DateTime.sunday) {
-                return Container(
-                  margin: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: CalendarColors.holidayRed.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: CalendarColors.holidayRed.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${day.day}',
-                      style: const TextStyle(
-                        color: CalendarColors.holidayRed,
-                        fontWeight: FontWeight.w600,
+                      child: Center(
+                        child: Text(
+                          '${day.day}',
+                          style: const TextStyle(
+                            color: CalendarColors.holidayRed,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              }
-              return null;
-            },
-          ),
-        ),
-      ),
+                    );
+                  }
+                  return null;
+                },
+              ),
+            ),
     );
   }
 
-  Widget _buildEventDetailsCard() {
-    final normalizedSelectedDay = _normalizeDate(_selectedDay!);
-    final events = _events[normalizedSelectedDay];
-    final isHoliday = events != null;
-    final isSunday = _selectedDay!.weekday == DateTime.sunday;
+  // ───────────────── Holiday Details Card ─────────────────
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColor.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColor.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isHoliday
-                  ? CalendarColors.successGreen.withOpacity(0.1)
-                  : isSunday
-                      ? CalendarColors.holidayRed.withOpacity(0.1)
-                      : CalendarColors.textLight.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              isHoliday
-                  ? Icons.celebration
-                  : isSunday
-                      ? Icons.weekend
-                      : Icons.calendar_today,
-              color: isHoliday
-                  ? CalendarColors.successGreen
-                  : isSunday
-                      ? CalendarColors.holidayRed
-                      : CalendarColors.textLight,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _formatSelectedDate(),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: CalendarColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isHoliday
-                      ? events.join(', ')
-                      : isSunday
-                          ? 'Weekend'
-                          : 'Regular day',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: CalendarColors.textLight,
-                    fontWeight: FontWeight.w500,
-                    fontStyle: isHoliday ? FontStyle.italic : FontStyle.normal,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildHolidayDetailsCard() {
+    final bool isHoliday = _selectedDayHolidays.isNotEmpty;
+    final bool isSunday = _selectedDay!.weekday == DateTime.sunday;
 
-  Widget _buildUpcomingHolidaysCard() {
-    final upcomingHolidays = _getUpcomingHolidays();
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColor.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColor.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: CalendarColors.warningOrange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.upcoming,
-                  color: CalendarColors.warningOrange,
-                  size: 24,
-                ),
+              Icon(
+                isHoliday
+                    ? Icons.celebration
+                    : isSunday
+                        ? Icons.weekend
+                        : Icons.event,
+                color: isHoliday
+                    ? CalendarColors.successGreen
+                    : isSunday
+                        ? CalendarColors.holidayRed
+                        : CalendarColors.textLight,
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Upcoming Holidays',
-                style: TextStyle(
+              const SizedBox(width: 8),
+              Text(
+                _formatDate(_selectedDay!),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: CalendarColors.textDark,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          ...upcomingHolidays.map((holiday) => _buildHolidayItem(holiday)),
+
+          // ✅ REAL HOLIDAY (from API)
+          if (isHoliday)
+            ..._selectedDayHolidays.map((holiday) => _holidayItem(holiday))
+
+          // ✅ SUNDAY (NOT holiday)
+          else if (isSunday)
+            const Text(
+              'Weekend (Sunday)',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: CalendarColors.holidayRed,
+              ),
+            )
+
+          // ✅ NORMAL DAY
+          else
+            const Text(
+              'Regular working day',
+              style: TextStyle(
+                fontSize: 14,
+                color: CalendarColors.textLight,
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildHolidayItem(MapEntry<DateTime, List<String>> holiday) {
+  Widget _holidayItem(Holiday holiday) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: CalendarColors.lightBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: CalendarColors.textLight.withOpacity(0.2),
-          width: 1,
-        ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  CalendarColors.accentTeal,
-                  CalendarColors.accentTeal.withOpacity(0.7)
-                ],
-              ),
-              borderRadius: BorderRadius.circular(10),
+          Text(
+            holiday.name,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
             ),
-            child: Center(
+          ),
+          if ((holiday.description ?? '').isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
               child: Text(
-                '${holiday.key.day}',
+                holiday.description!,
                 style: const TextStyle(
-                  color: AppColor.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
+                  fontSize: 13,
+                  color: CalendarColors.textLight,
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  holiday.value.join(', '),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: CalendarColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _formatHolidayDate(holiday.key),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: CalendarColors.textLight,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
   }
 
-  String _getFormattedCurrentDate() {
+  // ───────────────── UI Helpers ─────────────────
+
+  Widget _card({required Widget child}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: CalendarColors.cardBackground,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _iconBox(IconData icon) {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: CalendarColors.accentTeal,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(icon, color: Colors.white),
+    );
+  }
+
+  // ───────────────── Date Helpers ─────────────────
+
+  String _getTodayDate() {
     final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
+      'January',
+      'February',
+      'March',
+      'April',
       'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     final now = DateTime.now();
-    return '${months[now.month - 1]} ${now.year}';
+    return '${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
-  String _formatSelectedDate() {
+  String _formatDate(DateTime d) {
     final months = [
       'Jan',
       'Feb',
@@ -621,37 +403,19 @@ class _HolidaysState extends State<Holidays> with TickerProviderStateMixin {
       'Nov',
       'Dec'
     ];
-    return '${months[_selectedDay!.month - 1]} ${_selectedDay!.day}, ${_selectedDay!.year}';
+    return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
 
-  String _formatHolidayDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
+  String _getTodayWeekday() {
+    const weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
     ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
-  }
-
-  int _getTotalHolidays() {
-    return _events.length;
-  }
-
-  List<MapEntry<DateTime, List<String>>> _getUpcomingHolidays() {
-    final now = DateTime.now();
-    return _events.entries
-        .where((entry) => entry.key.isAfter(now))
-        .take(3)
-        .toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
+    return weekdays[DateTime.now().weekday - 1];
   }
 }
